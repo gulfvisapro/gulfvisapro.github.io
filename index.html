@@ -1,0 +1,2814 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#0d1b2a"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="GulfVisa Pro"/>
+<link rel="manifest" href='data:application/json,{"name":"GulfVisa Pro","short_name":"GulfVisa","start_url":"/","display":"standalone","background_color":"#0d1b2a","theme_color":"#c9a84c","icons":[{"src":"https://img.icons8.com/color/96/visa.png","sizes":"96x96","type":"image/png"}]}'/>
+<title>GulfVisa Pro – Agency Platform</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E8C97A;
+  --gold-dark: #9A7A30;
+  --navy: #0D1B2A;
+  --navy-mid: #162233;
+  --navy-light: #1E3248;
+  --navy-card: #172030;
+  --slate: #8A9BB0;
+  --white: #F5F0E8;
+  --white-dim: #C8BFA8;
+  --green: #2ECC71;
+  --red: #E74C3C;
+  --amber: #F39C12;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  --shadow-gold: 0 4px 24px rgba(201,168,76,0.18);
+  --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--navy);
+  color:var(--white);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4{font-family:'Playfair Display',serif;}
+a{color:var(--gold);text-decoration:none;}
+button{cursor:pointer;font-family:'DM Sans',sans-serif;}
+input,select,textarea{
+  font-family:'DM Sans',sans-serif;
+  background:var(--navy-light);
+  border:1.5px solid rgba(201,168,76,0.2);
+  color:var(--white);
+  border-radius:var(--radius-sm);
+  padding:10px 14px;
+  width:100%;
+  font-size:14px;
+  outline:none;
+  transition:var(--transition);
+}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.12);}
+input::placeholder,textarea::placeholder{color:var(--slate);}
+select option{background:var(--navy-mid);}
+label{display:block;font-size:13px;color:var(--white-dim);margin-bottom:5px;font-weight:500;}
+
+/* ============================================================
+   LAYOUT UTILITIES
+   ============================================================ */
+.container{max-width:1200px;margin:0 auto;padding:0 24px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.flex{display:flex;align-items:center;}
+.flex-between{display:flex;align-items:center;justify-content:space-between;}
+.gap-8{gap:8px;}
+.gap-16{gap:16px;}
+.mt-8{margin-top:8px;}
+.mt-16{margin-top:16px;}
+.mt-24{margin-top:24px;}
+.hidden{display:none!important;}
+.text-gold{color:var(--gold);}
+.text-slate{color:var(--slate);}
+.text-sm{font-size:13px;}
+.text-xs{font-size:11px;}
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;
+}
+.badge-green{background:rgba(46,204,113,0.15);color:var(--green);}
+.badge-amber{background:rgba(243,156,18,0.15);color:var(--amber);}
+.badge-red{background:rgba(231,76,60,0.15);color:var(--red);}
+.badge-slate{background:rgba(138,155,176,0.15);color:var(--slate);}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 22px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;
+  border:none;transition:var(--transition);white-space:nowrap;
+}
+.btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:var(--navy);box-shadow:var(--shadow-gold);}
+.btn-primary:hover{background:linear-gradient(135deg,var(--gold-light),var(--gold));transform:translateY(-1px);}
+.btn-outline{background:transparent;border:1.5px solid var(--gold);color:var(--gold);}
+.btn-outline:hover{background:rgba(201,168,76,0.1);}
+.btn-ghost{background:rgba(255,255,255,0.06);color:var(--white-dim);border:none;}
+.btn-ghost:hover{background:rgba(255,255,255,0.1);}
+.btn-danger{background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3);}
+.btn-danger:hover{background:rgba(231,76,60,0.25);}
+.btn-sm{padding:7px 14px;font-size:13px;}
+.btn-full{width:100%;}
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.card{
+  background:var(--navy-card);
+  border:1px solid rgba(201,168,76,0.12);
+  border-radius:var(--radius);
+  padding:24px;
+}
+.card-sm{padding:16px;}
+
+/* ============================================================
+   TOAST NOTIFICATIONS
+   ============================================================ */
+#toast-container{
+  position:fixed;top:24px;right:24px;z-index:9999;
+  display:flex;flex-direction:column;gap:10px;pointer-events:none;
+}
+.toast{
+  background:var(--navy-mid);border-radius:var(--radius-sm);
+  padding:14px 18px;font-size:14px;font-weight:500;
+  border-left:4px solid var(--gold);
+  box-shadow:var(--shadow);pointer-events:all;
+  animation:slideIn 0.3s ease;max-width:340px;
+}
+.toast.success{border-color:var(--green);}
+.toast.error{border-color:var(--red);}
+.toast.warning{border-color:var(--amber);}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px);}to{opacity:1;transform:translateX(0);}}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+  animation:fadeIn 0.2s ease;
+}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.modal{
+  background:var(--navy-mid);border:1px solid rgba(201,168,76,0.2);
+  border-radius:var(--radius);padding:32px;width:100%;max-width:480px;
+  max-height:90vh;overflow-y:auto;position:relative;
+}
+.modal-title{font-size:22px;margin-bottom:24px;color:var(--gold);}
+.modal-close{
+  position:absolute;top:16px;right:16px;background:none;border:none;
+  color:var(--slate);font-size:22px;line-height:1;padding:4px;
+}
+.modal-close:hover{color:var(--white);}
+
+/* ============================================================
+   LANDING PAGE
+   ============================================================ */
+#page-landing{animation:fadeIn 0.4s ease;}
+
+/* NAV */
+.landing-nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(13,27,42,0.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(201,168,76,0.1);
+  padding:16px 0;
+}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{display:flex;align-items:center;gap:10px;}
+.nav-logo-icon{
+  width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-weight:700;color:var(--navy);font-size:16px;
+}
+.nav-logo-text{font-family:'Playfair Display',serif;font-size:20px;color:var(--gold);}
+.nav-links{display:flex;align-items:center;gap:28px;}
+.nav-links a{color:var(--white-dim);font-size:14px;font-weight:500;transition:var(--transition);}
+.nav-links a:hover{color:var(--gold);}
+.nav-actions{display:flex;gap:10px;}
+
+/* HERO */
+.hero{
+  padding:100px 0 80px;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 70%);
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0 L60 30 L30 60 L0 30Z' fill='none' stroke='rgba(201,168,76,0.04)' stroke-width='1'/%3E%3C/svg%3E") repeat;
+  pointer-events:none;
+}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.25);
+  color:var(--gold);padding:6px 16px;border-radius:20px;font-size:13px;font-weight:600;
+  margin-bottom:28px;
+}
+.hero h1{font-size:clamp(36px,5vw,64px);line-height:1.15;margin-bottom:20px;}
+.hero h1 em{color:var(--gold);font-style:normal;}
+.hero p{color:var(--white-dim);font-size:18px;max-width:560px;margin:0 auto 40px;line-height:1.7;}
+.hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.hero-stats{
+  display:flex;gap:48px;justify-content:center;flex-wrap:wrap;
+  margin-top:60px;padding-top:40px;
+  border-top:1px solid rgba(201,168,76,0.1);
+}
+.hero-stat-number{font-family:'Playfair Display',serif;font-size:36px;color:var(--gold);display:block;}
+.hero-stat-label{font-size:13px;color:var(--slate);margin-top:4px;}
+
+/* FEATURES */
+.section{padding:80px 0;}
+.section-title{text-align:center;font-size:36px;margin-bottom:12px;}
+.section-sub{text-align:center;color:var(--slate);font-size:16px;max-width:500px;margin:0 auto 48px;}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;}
+.feature-card{
+  background:var(--navy-card);border:1px solid rgba(201,168,76,0.1);
+  border-radius:var(--radius);padding:28px;
+  transition:var(--transition);
+}
+.feature-card:hover{border-color:rgba(201,168,76,0.35);transform:translateY(-3px);box-shadow:var(--shadow-gold);}
+.feature-icon{font-size:28px;margin-bottom:16px;}
+.feature-card h3{font-size:18px;margin-bottom:8px;}
+.feature-card p{color:var(--slate);font-size:14px;line-height:1.6;}
+
+/* PRICING */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;max-width:960px;margin:0 auto;}
+.pricing-card{
+  background:var(--navy-card);border:1px solid rgba(201,168,76,0.12);
+  border-radius:var(--radius);padding:32px;text-align:center;
+  transition:var(--transition);position:relative;
+}
+.pricing-card.featured{
+  border-color:var(--gold);
+  background:linear-gradient(160deg,rgba(201,168,76,0.08),var(--navy-card));
+}
+.pricing-popular{
+  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  background:var(--gold);color:var(--navy);padding:4px 16px;border-radius:20px;
+  font-size:12px;font-weight:700;white-space:nowrap;
+}
+.pricing-name{font-size:14px;color:var(--slate);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;}
+.pricing-price{font-family:'Playfair Display',serif;font-size:48px;color:var(--gold);}
+.pricing-price sup{font-size:22px;vertical-align:top;margin-top:10px;}
+.pricing-period{font-size:14px;color:var(--slate);margin-bottom:24px;}
+.pricing-features{list-style:none;text-align:left;margin:20px 0;display:flex;flex-direction:column;gap:10px;}
+.pricing-features li{font-size:14px;color:var(--white-dim);display:flex;gap:8px;align-items:flex-start;}
+.pricing-features li::before{content:'✓';color:var(--gold);font-weight:700;flex-shrink:0;}
+
+/* TRUST BAR */
+.trust-bar{
+  background:var(--navy-mid);border-top:1px solid rgba(201,168,76,0.1);
+  border-bottom:1px solid rgba(201,168,76,0.1);
+  padding:24px 0;
+}
+.trust-items{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;}
+.trust-item{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--white-dim);}
+.trust-item span:first-child{font-size:20px;}
+
+/* FOOTER */
+.landing-footer{
+  background:var(--navy-mid);border-top:1px solid rgba(201,168,76,0.1);
+  padding:48px 0 24px;
+}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px;}
+.footer-brand p{color:var(--slate);font-size:14px;line-height:1.7;margin-top:12px;}
+.footer-col h4{font-size:14px;font-weight:600;color:var(--gold);margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px;}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.footer-col ul li a{color:var(--slate);font-size:14px;transition:var(--transition);}
+.footer-col ul li a:hover{color:var(--gold);}
+.footer-bottom{
+  border-top:1px solid rgba(201,168,76,0.08);
+  padding-top:24px;display:flex;justify-content:space-between;
+  align-items:center;flex-wrap:wrap;gap:12px;
+}
+.footer-bottom p{font-size:13px;color:var(--slate);}
+
+/* ============================================================
+   AUTH PAGE
+   ============================================================ */
+#page-auth{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 70% 50% at 50% 50%, rgba(201,168,76,0.06) 0%, transparent 70%);
+}
+.auth-box{
+  background:var(--navy-mid);border:1px solid rgba(201,168,76,0.2);
+  border-radius:var(--radius);padding:40px;width:100%;max-width:440px;
+}
+.auth-logo{text-align:center;margin-bottom:32px;}
+.auth-logo .logo-icon{
+  width:52px;height:52px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));
+  border-radius:12px;display:inline-flex;align-items:center;justify-content:center;
+  font-weight:700;color:var(--navy);font-size:22px;margin-bottom:12px;
+}
+.auth-logo h2{font-size:26px;color:var(--gold);}
+.auth-tabs{display:flex;gap:0;margin-bottom:28px;background:var(--navy);border-radius:var(--radius-sm);padding:4px;}
+.auth-tab{
+  flex:1;padding:9px;text-align:center;border-radius:6px;border:none;
+  background:transparent;color:var(--slate);font-size:14px;font-weight:600;transition:var(--transition);
+}
+.auth-tab.active{background:var(--navy-card);color:var(--gold);}
+.form-group{margin-bottom:16px;}
+.auth-divider{text-align:center;color:var(--slate);font-size:13px;margin:16px 0;}
+.auth-switch{text-align:center;font-size:14px;color:var(--slate);margin-top:20px;}
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+#page-dashboard{display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{
+  width:240px;flex-shrink:0;
+  background:var(--navy-mid);border-right:1px solid rgba(201,168,76,0.1);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.sidebar-logo{
+  padding:24px 20px;border-bottom:1px solid rgba(201,168,76,0.1);
+  display:flex;align-items:center;gap:10px;
+}
+.sidebar-logo-icon{
+  width:32px;height:32px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));
+  border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-weight:700;color:var(--navy);font-size:14px;flex-shrink:0;
+}
+.sidebar-logo-text{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold);}
+.sidebar-nav{flex:1;padding:16px 12px;}
+.sidebar-section{font-size:10px;color:var(--slate);text-transform:uppercase;letter-spacing:1px;padding:12px 8px 6px;}
+.sidebar-link{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);
+  color:var(--white-dim);font-size:14px;font-weight:500;transition:var(--transition);
+  border:none;background:none;width:100%;text-align:left;cursor:pointer;
+}
+.sidebar-link:hover{background:rgba(201,168,76,0.08);color:var(--white);}
+.sidebar-link.active{background:rgba(201,168,76,0.12);color:var(--gold);}
+.sidebar-link span:first-child{font-size:17px;width:20px;text-align:center;}
+.sidebar-footer{
+  padding:16px;border-top:1px solid rgba(201,168,76,0.1);
+}
+.sidebar-user{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.sidebar-user-avatar{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold-dark));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;color:var(--navy);font-size:14px;flex-shrink:0;
+}
+.sidebar-user-info{overflow:hidden;}
+.sidebar-user-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sidebar-user-role{font-size:11px;color:var(--slate);}
+
+/* MAIN CONTENT */
+.dash-main{flex:1;overflow-x:hidden;}
+.dash-header{
+  background:var(--navy-mid);border-bottom:1px solid rgba(201,168,76,0.1);
+  padding:18px 28px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;
+}
+.dash-title{font-size:20px;}
+.dash-content{padding:28px;}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px;}
+.stat-card{
+  background:var(--navy-card);border:1px solid rgba(201,168,76,0.1);
+  border-radius:var(--radius);padding:20px 24px;
+}
+.stat-label{font-size:13px;color:var(--slate);margin-bottom:8px;}
+.stat-value{font-family:'Playfair Display',serif;font-size:32px;color:var(--gold);}
+.stat-sub{font-size:12px;color:var(--slate);margin-top:4px;}
+
+/* TRIAL BANNER */
+.trial-banner{
+  background:linear-gradient(135deg,rgba(201,168,76,0.12),rgba(201,168,76,0.06));
+  border:1px solid rgba(201,168,76,0.3);border-radius:var(--radius);
+  padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.trial-banner p{font-size:14px;}
+.trial-bar{height:6px;background:rgba(255,255,255,0.1);border-radius:3px;margin-top:6px;width:200px;}
+.trial-bar-fill{height:100%;background:var(--gold);border-radius:3px;transition:width 0.5s ease;}
+
+/* TABLE */
+.table-wrapper{overflow-x:auto;border-radius:var(--radius);border:1px solid rgba(201,168,76,0.1);}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+thead{background:var(--navy-mid);}
+th{padding:13px 16px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:var(--slate);font-weight:600;}
+td{padding:13px 16px;border-top:1px solid rgba(255,255,255,0.04);color:var(--white-dim);}
+tr:hover td{background:rgba(201,168,76,0.03);}
+
+/* CV FORM */
+.cv-form-grid{display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start;}
+.cv-section-title{
+  font-size:14px;font-weight:600;color:var(--gold);
+  text-transform:uppercase;letter-spacing:0.5px;
+  border-bottom:1px solid rgba(201,168,76,0.15);
+  padding-bottom:10px;margin-bottom:16px;margin-top:24px;
+}
+.cv-section-title:first-child{margin-top:0;}
+.photo-upload-area{
+  border:2px dashed rgba(201,168,76,0.25);border-radius:var(--radius);
+  padding:24px;text-align:center;cursor:pointer;transition:var(--transition);position:relative;
+}
+.photo-upload-area:hover{border-color:var(--gold);background:rgba(201,168,76,0.04);}
+.photo-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;}
+.photo-preview{width:100px;height:120px;object-fit:cover;border-radius:6px;margin:0 auto 8px;display:block;}
+.photo-placeholder{font-size:40px;margin-bottom:8px;}
+
+/* CV PREVIEW */
+.cv-preview-sticky{position:sticky;top:90px;}
+.cv-preview-card{
+  background:white;color:#1a1a1a;border-radius:var(--radius);
+  overflow:hidden;font-size:11px;box-shadow:var(--shadow);
+}
+.cv-preview-header{
+  background:linear-gradient(135deg,#1a3a5c,#0d2040);
+  color:white;padding:16px;
+  display:flex;gap:12px;align-items:flex-start;
+}
+.cv-preview-photo{
+  width:70px;height:80px;object-fit:cover;border-radius:4px;
+  border:2px solid rgba(255,255,255,0.3);flex-shrink:0;
+  background:#2a4a6c;display:flex;align-items:center;justify-content:center;
+  font-size:24px;
+}
+.cv-preview-title{font-size:13px;font-weight:700;margin-bottom:4px;}
+.cv-preview-sub{font-size:10px;opacity:0.8;margin-bottom:2px;}
+.cv-preview-body{padding:14px;}
+.cv-table{width:100%;border-collapse:collapse;font-size:10px;margin-bottom:8px;}
+.cv-table td{padding:4px 6px;border:1px solid #ddd;vertical-align:top;}
+.cv-table td:first-child{color:#666;width:35%;}
+.cv-table td:nth-child(2){font-weight:600;}
+.cv-section-header{
+  background:#1a3a5c;color:white;padding:4px 8px;font-size:10px;
+  font-weight:700;letter-spacing:0.5px;margin:8px 0 4px;text-transform:uppercase;
+}
+.cv-preview-actions{padding:14px;border-top:1px solid rgba(201,168,76,0.2);display:flex;gap:10px;}
+
+/* COUNTRIES GRID */
+.countries-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;}
+.country-card{
+  background:var(--navy-card);border:1px solid rgba(201,168,76,0.1);
+  border-radius:var(--radius);padding:20px;
+  display:flex;align-items:center;gap:14px;
+}
+.country-flag{font-size:36px;}
+.country-name{font-weight:600;font-size:16px;}
+.country-info{font-size:13px;color:var(--slate);margin-top:2px;}
+
+/* SETTINGS */
+.settings-section{margin-bottom:32px;}
+.settings-section h3{font-size:18px;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid rgba(201,168,76,0.1);}
+
+/* PRICING MODAL CURRENCY TOGGLE */
+.currency-toggle{display:flex;gap:0;margin-bottom:24px;background:var(--navy);border-radius:var(--radius-sm);padding:4px;width:fit-content;}
+.currency-btn{padding:8px 20px;border-radius:6px;border:none;background:transparent;color:var(--slate);font-size:14px;font-weight:600;transition:var(--transition);}
+.currency-btn.active{background:var(--navy-card);color:var(--gold);}
+
+/* LEGAL PAGES */
+.legal-content{max-width:800px;margin:0 auto;padding:60px 24px;}
+.legal-content h1{color:var(--gold);margin-bottom:8px;}
+.legal-content .date{color:var(--slate);font-size:14px;margin-bottom:40px;}
+.legal-content h2{font-size:20px;margin-top:36px;margin-bottom:12px;color:var(--white);}
+.legal-content p{color:var(--white-dim);font-size:15px;line-height:1.8;margin-bottom:14px;}
+.legal-content ul{color:var(--white-dim);font-size:15px;line-height:1.8;margin-left:20px;margin-bottom:14px;}
+.legal-content li{margin-bottom:6px;}
+
+/* WHATSAPP NOTIFICATION */
+.whatsapp-panel{background:var(--navy-card);border:1px solid rgba(37,211,102,0.2);border-radius:var(--radius);padding:20px;margin-top:16px;}
+.whatsapp-panel h4{color:#25D366;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+
+/* PLAN LIMIT OVERLAY */
+.plan-limit-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;
+  display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);
+}
+.plan-limit-box{
+  background:var(--navy-mid);border:1px solid var(--gold);border-radius:var(--radius);
+  padding:36px;max-width:480px;text-align:center;
+}
+.plan-limit-icon{font-size:48px;margin-bottom:16px;}
+.plan-limit-box h3{font-size:24px;margin-bottom:12px;}
+.plan-limit-box p{color:var(--slate);margin-bottom:24px;}
+
+/* SEARCH */
+.search-bar{
+  display:flex;align-items:center;gap:8px;
+  background:var(--navy-light);border:1px solid rgba(201,168,76,0.15);
+  border-radius:var(--radius-sm);padding:0 12px;width:240px;
+}
+.search-bar input{border:none;background:transparent;padding:9px 0;width:100%;}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .footer-grid{grid-template-columns:1fr 1fr;}
+  .cv-form-grid{grid-template-columns:1fr;}
+  .cv-preview-sticky{position:static;}
+}
+@media(max-width:680px){
+  #mob-menu-btn { display:block !important; }
+  #dash-sidebar {
+    position:fixed !important;
+    left:-260px !important;
+    top:0;
+    height:100vh;
+    z-index:200;
+    transition:left 0.25s ease;
+    overflow-y:auto;
+    display:block !important;
+  }
+  #dash-sidebar.mob-open {
+    left:0 !important;
+  }
+  #mob-sidebar-overlay.mob-open {
+    display:block !important;
+  }
+
+  /* Layout */
+  .grid-2,.grid-3{grid-template-columns:1fr;}
+
+  /* Hero */
+  .hero{padding:60px 16px 40px;}
+  .hero h1{font-size:28px;line-height:1.25;}
+  .hero p{font-size:14px;}
+  .hero-stats{gap:16px;flex-wrap:wrap;}
+  .hero-actions{flex-direction:column;gap:10px;}
+  .hero-actions .btn{width:100%;}
+
+  /* Nav */
+  .landing-nav{padding:0 16px;}
+  .nav-links{display:none;}
+
+  /* Auth page */
+  #page-auth{padding:16px;}
+  .auth-card{padding:20px 16px;margin:0;border-radius:12px;}
+
+  /* Dashboard */
+  .dash-main{flex-direction:column;}
+  .dash-header{padding:12px 16px;flex-wrap:wrap;gap:8px;}
+  .dash-content{padding:16px;}
+  .dash-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;padding-bottom:4px;}
+  .dash-tab{padding:8px 12px;font-size:12px;}
+
+  /* Cards & grids */
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .card{padding:14px;}
+  .card-sm{padding:10px;}
+
+  /* Tables scroll on mobile */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table{min-width:500px;}
+
+  /* Forms */
+  .form-group label{font-size:13px;}
+  .form-group input,.form-group select,.form-group textarea{font-size:14px;padding:10px 12px;}
+  .btn-full{width:100%;}
+
+  /* Modals */
+  .modal{width:calc(100vw - 24px);max-height:90vh;overflow-y:auto;padding:20px 16px;margin:12px;}
+  .modal-overlay{align-items:flex-end;padding:0;}
+
+  /* Pricing */
+  .pricing-card{padding:20px 16px;}
+  .pricing-price{font-size:36px;}
+
+  /* CV form */
+  .photo-upload-area{width:90px;height:110px;}
+
+  /* Misc */
+  .footer-grid{grid-template-columns:1fr;}
+  .section-title{font-size:24px;}
+  .landing-section{padding:40px 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ================================================================
+     TOAST CONTAINER
+================================================================ -->
+<div id="toast-container"></div>
+
+<!-- ================================================================
+     PAGE: LANDING
+================================================================ -->
+<div id="page-landing">
+  <!-- NAV -->
+  <nav class="landing-nav">
+    <div class="container nav-inner">
+      <div class="nav-logo">
+        <div class="nav-logo-icon">G</div>
+        <span class="nav-logo-text">GulfVisa Pro</span>
+      </div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#" onclick="showPage('privacy');return false;">Privacy</a>
+        <a href="#" onclick="showPage('terms');return false;">Terms</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div class="nav-actions">
+        <button class="btn btn-ghost btn-sm" onclick="showPage('auth')">Sign In</button>
+        <button class="btn btn-primary btn-sm" onclick="showPage('auth')">Register Agency</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-tag">🏆 Trusted by Licensed Visa Agencies</div>
+      <h1>Professional Visa CVs<br>for All <em>Gulf Countries</em></h1>
+      <p>The professional platform for licensed visa agencies. Upload client data, generate official CVs instantly, and submit to any Gulf embassy.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="showPage('auth')">Start Free Trial →</button>
+        <button class="btn btn-outline" onclick="showPage('auth')">Agency Login</button>
+      </div>
+      <div class="hero-stats">
+        <div>
+          <span class="hero-stat-number">6</span>
+          <div class="hero-stat-label">Gulf Countries</div>
+        </div>
+        <div>
+          <span class="hero-stat-number">10+</span>
+          <div class="hero-stat-label">Worker Categories</div>
+        </div>
+        <div>
+          <span class="hero-stat-number">100%</span>
+          <div class="hero-stat-label">Official CV Format</div>
+        </div>
+        <div>
+          <span class="hero-stat-number">3</span>
+          <div class="hero-stat-label">Free Trial CVs</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST BAR -->
+  <div class="trust-bar">
+    <div class="container trust-items">
+      <div class="trust-item"><span>🔒</span><span>SSL Encrypted</span></div>
+      <div class="trust-item"><span>🏛️</span><span>For Licensed Agencies</span></div>
+      <div class="trust-item"><span>🌍</span><span>All 6 Gulf Countries</span></div>
+      <div class="trust-item"><span>📄</span><span>Embassy-Ready Format</span></div>
+      <div class="trust-item"><span>💬</span><span>WhatsApp Integration</span></div>
+      <div class="trust-item"><span>🛡️</span><span>GDPR-Aware Data Handling</span></div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="section" id="features">
+    <div class="container">
+      <h2 class="section-title">Everything Your Agency Needs</h2>
+      <p class="section-sub">One platform to manage all your Gulf visa applications from start to finish.</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📋</div>
+          <h3>Instant CV Generation</h3>
+          <p>Upload client information and generate a professional official CV in seconds. Supports all 6 Gulf country formats with bilingual Arabic/English output.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌍</div>
+          <h3>All 6 Gulf Countries</h3>
+          <p>Saudi Arabia, UAE, Qatar, Kuwait, Bahrain, and Oman. Each country has its own correctly formatted embassy template.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Agency Dashboard</h3>
+          <p>Track all your applications, client statuses, and revenue in one clean dashboard. Full history and search.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⬇️</div>
+          <h3>Real PDF Download</h3>
+          <p>Download fully formatted, print-ready PDF documents to submit directly to any Gulf embassy or consulate. Not just browser print.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>Secure & Private</h3>
+          <p>Client data is encrypted and only accessible by your agency. We handle passport, biometric, and personal data with strict privacy controls.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💬</div>
+          <h3>WhatsApp Integration</h3>
+          <p>Send CV status updates directly to clients via WhatsApp automatically. Available on Professional and Enterprise plans.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="section" id="pricing" style="background:var(--navy-mid);">
+    <div class="container">
+      <h2 class="section-title">Simple Agency Pricing</h2>
+      <p class="section-sub">One simple yearly plan — everything included. No per-CV charges.</p>
+      <!-- Currency toggle -->
+
+      <div style="display:flex;justify-content:center;">
+        <div class="pricing-card featured" style="max-width:420px;width:100%;">
+          <div class="pricing-popular">⭐ All-Inclusive Plan</div>
+          <div class="pricing-name">GulfVisa Pro</div>
+          <div class="pricing-price">
+            10,000 <span style="font-size:18px;font-weight:400;">ETB</span>
+          </div>
+          <div class="pricing-period">per year · Unlimited everything</div>
+          <button class="btn btn-primary btn-full mt-16" onclick="showPage('auth')">Start Free Trial</button>
+          <ul class="pricing-features">
+            <li>Unlimited CV generation</li>
+            <li>PDF download &amp; print</li>
+            <li>All 6 Gulf countries</li>
+            <li>WhatsApp integration</li>
+            <li>Analytics dashboard</li>
+            <li>Client management</li>
+            <li>Priority support</li>
+            <li>Official embassy-ready format</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="landing-footer" id="contact">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="nav-logo" style="margin-bottom:12px;">
+            <div class="nav-logo-icon">G</div>
+            <span class="nav-logo-text">GulfVisa Pro</span>
+          </div>
+          <p>The professional platform for licensed visa agencies processing Gulf country work visa applications. Trusted, secure, and built for Ethiopian agencies.</p>
+          <p style="margin-top:12px;font-size:13px;color:var(--slate);">📧 gulfvisapro7@gmail.com<br>📞 +251 967 777 343</p>
+        </div>
+        <div class="footer-col">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#" onclick="showPage('auth');return false;">Login</a></li>
+            <li><a href="#" onclick="showPage('auth');return false;">Register</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#" onclick="showPage('privacy');return false;">Privacy Policy</a></li>
+            <li><a href="#" onclick="showPage('terms');return false;">Terms of Service</a></li>
+            <li><a href="#" onclick="showPage('privacy');return false;">Data Protection</a></li>
+            <li><a href="#" onclick="showPage('privacy');return false;">Cookie Policy</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Support</h4>
+          <ul>
+            <li><a href="mailto:gulfvisapro7@gmail.com">Email Support</a></li>
+            <li><a href="https://wa.me/251911000000" target="_blank">WhatsApp</a></li>
+            <li><a href="#contact">Contact Us</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 GulfVisa Pro. All rights reserved. A platform for licensed visa agencies.</p>
+        <p>🔒 SSL Secured &nbsp;|&nbsp; 🛡️ GDPR-Aware &nbsp;|&nbsp; 📧 gulfvisapro7@gmail.com</p>
+      </div>
+    </div>
+  </footer>
+</div><!-- /page-landing -->
+
+<!-- ================================================================
+     PAGE: AUTH
+================================================================ -->
+<div id="page-auth" class="hidden">
+  <div style="position:fixed;top:16px;left:16px;z-index:10;">
+    <button class="btn btn-ghost btn-sm" onclick="showPage('landing')">← Back</button>
+  </div>
+  <div id="page-auth-inner" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+    <div class="auth-box">
+      <div class="auth-logo">
+        <div class="logo-icon">G</div>
+        <h2>GulfVisa Pro</h2>
+        <p class="text-slate text-sm mt-8">Agency Management Platform</p>
+      </div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-signin" onclick="switchAuthTab('signin')">Sign In</button>
+        <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Register</button>
+      </div>
+      <!-- SIGN IN -->
+      <div id="form-signin">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="signin-email" placeholder="agency@email.com"/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div style="position:relative;">
+            <input type="password" id="signin-password" placeholder="••••••••" style="padding-right:44px;width:100%;"/>
+            <button type="button" onclick="togglePass('signin-password',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--slate);font-size:16px;padding:0;line-height:1;">👁</button>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full mt-16" onclick="handleSignIn()">Sign In to Dashboard</button>
+        <p class="auth-switch" style="margin-bottom:8px;"><a href="#" onclick="handleForgotPassword();return false;" style="color:var(--slate);font-size:13px;">Forgot password?</a></p>
+        <p class="auth-switch">Don't have an account? <a href="#" onclick="switchAuthTab('register');return false;">Register your agency</a></p>
+      </div>
+      <!-- REGISTER -->
+      <div id="form-register" class="hidden">
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Agency Name</label>
+            <input type="text" id="reg-agency" placeholder="Your Agency Name"/>
+          </div>
+          <div class="form-group">
+            <label>Your Full Name</label>
+            <input type="text" id="reg-name" placeholder="Full Name"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="reg-email" placeholder="agency@email.com"/>
+        </div>
+        <div class="form-group">
+          <label>Password (min 8 characters)</label>
+          <div style="position:relative;">
+            <input type="password" id="reg-password" placeholder="••••••••" style="padding-right:44px;width:100%;"/>
+            <button type="button" onclick="togglePass('reg-password',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--slate);font-size:16px;padding:0;line-height:1;">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Agency License Number</label>
+          <input type="text" id="reg-license" placeholder="License #"/>
+        </div>
+        <div class="form-group">
+          <label>Preferred Currency</label>
+          <select id="reg-currency">
+            <option value="USD">USD – US Dollar ($)</option>
+            <option value="ETB">ETB – Ethiopian Birr (ብር)</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-full mt-16" onclick="handleRegister()">Create Agency Account</button>
+        <p class="text-xs text-slate mt-16" style="text-align:center;line-height:1.6;">
+          By registering you agree to our <a href="#" onclick="showPage('terms');return false;">Terms of Service</a> and <a href="#" onclick="showPage('privacy');return false;">Privacy Policy</a>.
+          Your client data is encrypted and handled per GDPR standards.
+        </p>
+        <p class="auth-switch">Already have an account? <a href="#" onclick="switchAuthTab('signin');return false;">Sign in</a></p>
+      </div>
+    </div>
+  </div>
+</div><!-- /page-auth -->
+
+<!-- ================================================================
+     PAGE: DASHBOARD
+================================================================ -->
+<div id="mob-sidebar-overlay" onclick="closeMobileMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:199;"></div>
+<div id="page-dashboard" class="hidden">
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="dash-sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">G</div>
+      <span class="sidebar-logo-text">GulfVisa Pro</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">Main</div>
+      <button class="sidebar-link active" onclick="showTab('tab-overview')" id="nav-overview">
+        <span>📊</span><span>Dashboard</span>
+      </button>
+      <button class="sidebar-link" onclick="showTab('tab-generate')" id="nav-generate">
+        <span>📋</span><span>Generate CV</span>
+      </button>
+      <button class="sidebar-link" onclick="showTab('tab-applications')" id="nav-applications">
+        <span>📁</span><span>Applications</span>
+      </button>
+      <div class="sidebar-section">Management</div>
+      <button class="sidebar-link" onclick="showTab('tab-clients')" id="nav-clients">
+        <span>👥</span><span>Clients</span>
+      </button>
+      <button class="sidebar-link" onclick="showTab('tab-countries')" id="nav-countries">
+        <span>🌍</span><span>Countries</span>
+      </button>
+      <div class="sidebar-section">Account</div>
+      <button class="sidebar-link" onclick="showTab('tab-settings')" id="nav-settings">
+        <span>⚙️</span><span>Settings</span>
+      </button>
+      <button class="sidebar-link" onclick="showTab('tab-billing')" id="nav-billing">
+        <span>💳</span><span>Billing</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sidebar-avatar">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-name">Agency</div>
+          <div class="sidebar-user-role">Licensed Agent</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm btn-full" onclick="handleSignOut()">⏻ Sign Out</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="dash-main">
+    <div class="dash-header">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button id="mob-menu-btn" onclick="toggleMobileMenu()" style="display:none;background:none;border:1px solid rgba(201,168,76,0.3);color:var(--gold);border-radius:6px;padding:4px 10px;font-size:20px;cursor:pointer;line-height:1;">☰</button>
+        <h2 class="dash-title" id="dash-page-title">Dashboard</h2>
+      </div>
+      <div class="flex gap-16">
+        <div id="plan-badge" class="badge badge-amber">Free Trial</div>
+        <button class="btn btn-primary btn-sm" onclick="showTab('tab-generate')">+ New CV</button>
+      </div>
+    </div>
+    <div class="dash-content">
+
+      <!-- TRIAL BANNER -->
+      <div class="trial-banner" id="trial-banner">
+        <div>
+          <p>⚠️ <strong>Free Trial:</strong> You have <strong id="trial-remaining">3</strong> CV(s) remaining.</p>
+          <div class="trial-bar"><div class="trial-bar-fill" id="trial-bar-fill" style="width:100%"></div></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="showTab('tab-billing')">Upgrade Plan →</button>
+      </div>
+
+      <!-- TAB: OVERVIEW -->
+      <div id="tab-overview">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total CVs Generated</div>
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-sub">All time</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Approved</div>
+            <div class="stat-value" id="stat-approved" style="color:var(--green)">0</div>
+            <div class="stat-sub" id="stat-rate">— approval rate</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Pending / Processing</div>
+            <div class="stat-value" id="stat-pending" style="color:var(--amber)">0</div>
+            <div class="stat-sub">Awaiting review</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Rejected</div>
+            <div class="stat-value" id="stat-rejected" style="color:var(--red)">0</div>
+            <div class="stat-sub">Review reasons</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="flex-between" style="margin-bottom:16px;">
+            <h3 style="font-size:16px;">Recent Applications</h3>
+            <button class="btn btn-ghost btn-sm" onclick="showTab('tab-applications')">View all →</button>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Client Name</th><th>Country</th><th>Visa Type</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="recent-apps-body"><tr><td colspan="6" style="text-align:center;color:var(--slate);padding:32px;">No applications yet. <a href="#" onclick="showTab('tab-generate');return false;">Generate your first CV →</a></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /tab-overview -->
+
+      <!-- TAB: GENERATE CV -->
+      <div id="tab-generate" class="hidden">
+        <div class="cv-form-grid">
+          <!-- FORM -->
+          <div>
+            <div class="card">
+              <div class="cv-section-title">Destination & Visa Type</div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Destination Country</label>
+                  <select id="cv-country" onchange="updateCVPreview()">
+                    <option value="">Select country...</option>
+                    <option value="SA">🇸🇦 Saudi Arabia</option>
+                    <option value="AE">🇦🇪 United Arab Emirates</option>
+                    <option value="QA">🇶🇦 Qatar</option>
+                    <option value="KW">🇰🇼 Kuwait</option>
+                    <option value="BH">🇧🇭 Bahrain</option>
+                    <option value="OM">🇴🇲 Oman</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Worker Type</label>
+                  <select id="cv-worker" onchange="updateCVPreview()">
+                    <option value="">Select type...</option>
+                    <optgroup label="── Work Visa ──">
+                      <option>Domestic Worker (Maid/Cleaner)</option>
+                      <option>Driver</option>
+                      <option>Nurse / Healthcare</option>
+                      <option>Construction Worker</option>
+                      <option>Engineer</option>
+                      <option>Teacher</option>
+                      <option>Cook / Chef</option>
+                      <option>Security Guard</option>
+                      <option>Electrician</option>
+                      <option>Plumber</option>
+                      <option>Welder</option>
+                      <option>Cleaner / Janitor</option>
+                      <option>Waiter / Hospitality</option>
+                      <option>Farmer / Agricultural Worker</option>
+                      <option>Other Professional</option>
+                    </optgroup>
+                    <optgroup label="── Visit Visa ──">
+                      <option>Visit / Tourism</option>
+                      <option>Family Visit</option>
+                      <option>Business Visit</option>
+                    </optgroup>
+                    <optgroup label="── Other ──">
+                      <option>Umrah</option>
+                      <option>Hajj</option>
+                      <option>Transit</option>
+                      <option>Residence</option>
+                      <option>Student</option>
+                      <option>Free Visa</option>
+                    </optgroup>
+                  </select>
+                </div>
+              </div>
+
+              <div class="cv-section-title">Client Photo</div>
+              <div class="photo-upload-area" id="photo-area">
+                <input type="file" id="cv-photo" accept="image/*" onchange="handlePhotoUpload(this)"/>
+                <div id="photo-placeholder-wrap">
+                  <div class="photo-placeholder">👤</div>
+                  <p class="text-sm text-slate">Click to upload passport-style photo</p>
+                  <p class="text-xs text-slate">JPG, PNG — will appear on the CV</p>
+                </div>
+                <img id="photo-preview-img" class="photo-preview hidden" src="" alt="Client photo"/>
+              </div>
+
+              <!-- Passport Scanner -->
+              <div class="card card-sm" style="margin-bottom:20px;border:1px dashed var(--gold);background:rgba(201,168,76,0.05);">
+                <div style="font-size:13px;font-weight:bold;margin-bottom:8px;">🛂 Auto-Fill from Passport</div>
+                <p class="text-slate text-sm" style="margin-bottom:12px;">Upload a passport photo and we'll fill in all the details automatically.</p>
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                  <label class="btn btn-primary btn-sm" style="cursor:pointer;">
+                    📷 Upload Passport
+                    <input type="file" id="passport-scan-input" accept="image/*" style="display:none;" onchange="scanPassport(this)"/>
+                  </label>
+                  <span id="passport-scan-status" class="text-slate text-sm"></span>
+                </div>
+              </div>
+
+              <div class="cv-section-title">Personal Information</div>
+              <div class="grid-2">
+                <div class="form-group"><label>First Name</label><input type="text" id="cv-fname" placeholder="First Name" oninput="updateCVPreview()"/></div>
+                <div class="form-group"><label>Last Name</label><input type="text" id="cv-lname" placeholder="Last Name" oninput="updateCVPreview()"/></div>
+                <div class="form-group"><label>Mother's Name</label><input type="text" id="cv-mother" placeholder="Mother's Name" oninput="updateCVPreview()"/></div>
+                <div class="form-group"><label>Place of Birth</label><input type="text" id="cv-pob" placeholder="City, Country" oninput="updateCVPreview()"/></div>
+                <div class="form-group"><label>Date of Birth</label><input type="date" id="cv-dob" oninput="updateCVPreview()"/></div>
+                <div class="form-group">
+                  <label>Gender</label>
+                  <select id="cv-gender" onchange="updateCVPreview()">
+                    <option value="">Select...</option>
+                    <option>Female</option>
+                    <option>Male</option>
+                  </select>
+                </div>
+                <div class="form-group"><label>Nationality</label><input type="text" id="cv-nationality" placeholder="e.g. Ethiopian" oninput="updateCVPreview()"/></div>
+                <div class="form-group">
+                  <label>Religion</label>
+                  <select id="cv-religion" onchange="updateCVPreview()">
+                    <option value="">Select...</option>
+                    <option>Christian</option>
+                    <option>Muslim</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div class="form-group"><label>Sect / المذهب</label><input type="text" id="cv-sect" placeholder="e.g. Orthodox" oninput="updateCVPreview()"/></div>
+                <div class="form-group">
+                  <label>Marital Status</label>
+                  <select id="cv-marital" onchange="updateCVPreview()">
+                    <option value="">Select...</option>
+                    <option>Single</option>
+                    <option>Married</option>
+                    <option>Divorced</option>
+                    <option>Widowed</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="cv-section-title">Passport Information</div>
+              <div class="grid-2">
+                <div class="form-group"><label>Passport Number</label><input type="text" id="cv-passport" placeholder="A00000000" oninput="updateCVPreview()"/></div>
+                <div class="form-group"><label>Place of Issue</label><input type="text" id="cv-poi" placeholder="City" oninput="updateCVPreview()"/></div>
+                <div class="form-group"><label>Issue Date</label><input type="date" id="cv-issue-date" oninput="updateCVPreview()"/></div>
+                <div class="form-group"><label>Expiry Date</label><input type="date" id="cv-expiry" oninput="updateCVPreview()"/></div>
+              </div>
+
+              <div class="cv-section-title">Contact & Address</div>
+              <div class="grid-2">
+                <div class="form-group"><label>Phone Number</label><input type="text" id="cv-phone" placeholder="+251..." oninput="updateCVPreview()"/></div>
+                <div class="form-group"><label>City</label><input type="text" id="cv-city" placeholder="City" oninput="updateCVPreview()"/></div>
+              </div>
+              <div class="form-group"><label>Full Address</label><textarea id="cv-address" rows="2" placeholder="Full residential address" oninput="updateCVPreview()"></textarea></div>
+
+              <div class="cv-section-title">Education & Experience</div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Education Level</label>
+                  <select id="cv-edu" onchange="updateCVPreview()">
+                    <option value="">Select...</option>
+                    <option>Primary School</option>
+                    <option>Secondary School</option>
+                    <option>High School</option>
+                    <option>Diploma</option>
+                    <option>Bachelor's Degree</option>
+                    <option>Master's Degree</option>
+                  </select>
+                </div>
+                <div class="form-group"><label>Years of Experience</label><input type="text" id="cv-exp" placeholder="e.g. 3 years" oninput="updateCVPreview()"/></div>
+                <div class="form-group"><label>Languages Spoken</label><input type="text" id="cv-langs" placeholder="e.g. Amharic, English" oninput="updateCVPreview()"/></div>
+                <div class="form-group"><label>Skills</label><input type="text" id="cv-skills" placeholder="e.g. Cooking, Driving" oninput="updateCVPreview()"/></div>
+              </div>
+              <div class="form-group"><label>Previous Work Experience</label><textarea id="cv-prev-work" rows="2" placeholder="Previous employer, role, duration" oninput="updateCVPreview()"></textarea></div>
+
+              <div class="cv-section-title">Employer / Sponsor Information</div>
+              <div class="grid-2">
+                <div class="form-group"><label>Visa Number / رقم التأشيرة</label><input type="text" id="cv-visa-no" placeholder="Visa Number" oninput="updateCVPreview()"/></div>
+                <div class="form-group"><label>Sponsor Name / اسم الكفيل</label><input type="text" id="cv-sponsor" placeholder="Sponsor Name" oninput="updateCVPreview()"/></div>
+                <div class="form-group"><label>Employer Phone</label><input type="text" id="cv-emp-phone" placeholder="Employer Phone" oninput="updateCVPreview()"/></div>
+                <div class="form-group"><label>Destination City</label><input type="text" id="cv-dest-city" placeholder="e.g. Riyadh" oninput="updateCVPreview()"/></div>
+              </div>
+
+              <div class="flex gap-16 mt-24">
+                <button class="btn btn-primary" style="flex:1" onclick="generateCV()">Generate CV Document →</button>
+                <button class="btn btn-ghost" onclick="clearCVForm()">Clear Form</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PREVIEW -->
+          <div class="cv-preview-sticky">
+            <div style="margin-bottom:12px;font-size:13px;color:var(--slate);">📄 Live Preview</div>
+            <div class="cv-preview-card" id="cv-preview-card">
+              <div class="cv-preview-header">
+                <div class="cv-preview-photo" id="preview-photo-wrap">
+                  <span id="preview-photo-icon">👤</span>
+                  <img id="preview-photo-img" src="" style="display:none;width:70px;height:80px;object-fit:cover;border-radius:4px;"/>
+                </div>
+                <div>
+                  <div style="font-size:10px;opacity:0.7;margin-bottom:2px;" id="preview-embassy-header">EMBASSY — CONSULAR SECTION</div>
+                  <div class="cv-preview-title" id="preview-fullname">— Full Name —</div>
+                  <div class="cv-preview-sub" id="preview-nationality">Nationality: —</div>
+                  <div class="cv-preview-sub" id="preview-profession">Profession: —</div>
+                  <div class="cv-preview-sub" id="preview-passport">Passport: —</div>
+                  <div class="cv-preview-sub" id="preview-visa">Visa No: —</div>
+                </div>
+              </div>
+              <div class="cv-preview-body">
+                <div class="cv-section-header">PERSONAL INFORMATION</div>
+                <table class="cv-table">
+                  <tr><td>Date of Birth</td><td id="p-dob">—</td><td>Place of Birth</td><td id="p-pob">—</td></tr>
+                  <tr><td>Gender</td><td id="p-gender">—</td><td>Marital Status</td><td id="p-marital">—</td></tr>
+                  <tr><td>Religion</td><td id="p-religion">—</td><td>Sect</td><td id="p-sect">—</td></tr>
+                  <tr><td>Education</td><td id="p-edu">—</td><td>Experience</td><td id="p-exp">—</td></tr>
+                  <tr><td>Languages</td><td id="p-langs" colspan="3">—</td></tr>
+                </table>
+                <div class="cv-section-header">PASSPORT & CONTACT</div>
+                <table class="cv-table">
+                  <tr><td>Issue Place</td><td id="p-poi">—</td><td>Expiry</td><td id="p-expiry">—</td></tr>
+                  <tr><td>Phone</td><td id="p-phone">—</td><td>City</td><td id="p-city">—</td></tr>
+                </table>
+                <div class="cv-section-header">EMPLOYER / SPONSOR</div>
+                <table class="cv-table">
+                  <tr><td>Sponsor</td><td id="p-sponsor">—</td><td>Phone</td><td id="p-emp-phone">—</td></tr>
+                  <tr><td>Destination</td><td id="p-dest-city">—</td><td>Country</td><td id="p-country">—</td></tr>
+                </table>
+              </div>
+              <div class="cv-preview-actions">
+                <button class="btn btn-primary btn-sm" style="flex:1" id="btn-download-pdf" onclick="downloadPDF()">⬇ Download PDF</button>
+                <button class="btn btn-ghost btn-sm" id="btn-print" onclick="printCV()">🖨 Print</button>
+              </div>
+            </div>
+
+            <!-- WhatsApp notification panel -->
+            <div class="whatsapp-panel" id="whatsapp-panel" style="display:none;">
+              <h4>💬 WhatsApp Notification</h4>
+              <div class="form-group">
+                <label>Client WhatsApp Number</label>
+                <input type="text" id="wa-number" placeholder="+251911..."/>
+              </div>
+              <button class="btn btn-sm" style="background:#25D366;color:white;border:none;" onclick="sendWhatsApp()">Send Status via WhatsApp</button>
+              <p class="text-xs text-slate mt-8">Requires Professional plan or higher. Uses your Twilio account.</p>
+            </div>
+          </div>
+        </div>
+      </div><!-- /tab-generate -->
+
+      <!-- TAB: APPLICATIONS -->
+      <div id="tab-applications" class="hidden">
+        <div class="flex-between" style="margin-bottom:20px;">
+          <div class="flex gap-8">
+            <input type="text" id="app-search" placeholder="🔍 Search name, passport..." oninput="renderApplications()" style="padding:8px 12px;font-size:13px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);min-width:200px;"/>
+            <select id="filter-country" class="btn btn-ghost" style="padding:8px 12px;font-size:13px;" onchange="renderApplications()">
+              <option value="">All Countries</option>
+              <option value="SA">Saudi Arabia</option>
+              <option value="AE">UAE</option>
+              <option value="QA">Qatar</option>
+              <option value="KW">Kuwait</option>
+              <option value="BH">Bahrain</option>
+              <option value="OM">Oman</option>
+            </select>
+            <select id="filter-status" class="btn btn-ghost" style="padding:8px 12px;font-size:13px;" onchange="renderApplications()">
+              <option value="">All Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Processing">Processing</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="exportApplicationsCSV()">📊 Export</button>
+          <button class="btn btn-primary btn-sm" onclick="showTab('tab-generate')">+ New CV</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Client Name</th><th>Passport</th><th>Country</th><th>Type</th><th>Generated</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="applications-body">
+              <tr><td colspan="7" style="text-align:center;color:var(--slate);padding:32px;">No applications yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /tab-applications -->
+
+      <!-- TAB: CLIENTS -->
+      <div id="tab-clients" class="hidden">
+        <div class="flex-between" style="margin-bottom:20px;">
+          <div class="search-bar">
+            <span style="color:var(--slate)">🔍</span>
+            <input type="text" placeholder="Search clients..." id="client-search" oninput="renderClients()"/>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openAddClientModal()">+ Add Client</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Name</th><th>Phone</th><th>Passport</th><th>Applications</th><th>Added</th><th>Action</th></tr></thead>
+            <tbody id="clients-body">
+              <tr><td colspan="6" style="text-align:center;color:var(--slate);padding:32px;">No clients yet. <a href="#" onclick="openAddClientModal();return false;">Add your first client →</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /tab-clients -->
+
+      <!-- TAB: COUNTRIES -->
+      <div id="tab-countries" class="hidden">
+        <p class="text-slate" style="margin-bottom:24px;">Supported Gulf destinations. Each country has its own correctly formatted embassy template.</p>
+        <div class="countries-grid">
+          <div class="country-card"><span class="country-flag">🇸🇦</span><div><div class="country-name">Saudi Arabia</div><div class="country-info">MOFA standard form · Arabic/English</div></div></div>
+          <div class="country-card"><span class="country-flag">🇦🇪</span><div><div class="country-name">United Arab Emirates</div><div class="country-info">GDRFA format · Dubai/Abu Dhabi</div></div></div>
+          <div class="country-card"><span class="country-flag">🇶🇦</span><div><div class="country-name">Qatar</div><div class="country-info">MOI standard form · Arabic/English</div></div></div>
+          <div class="country-card"><span class="country-flag">🇰🇼</span><div><div class="country-name">Kuwait</div><div class="country-info">MOI standard form · Arabic/English</div></div></div>
+          <div class="country-card"><span class="country-flag">🇧🇭</span><div><div class="country-name">Bahrain</div><div class="country-info">NPRA standard form · Arabic/English</div></div></div>
+          <div class="country-card"><span class="country-flag">🇴🇲</span><div><div class="country-name">Oman</div><div class="country-info">ROP standard form · Arabic/English</div></div></div>
+        </div>
+      </div><!-- /tab-countries -->
+
+      <!-- TAB: SETTINGS -->
+      <div id="tab-settings" class="hidden">
+        <div class="card" style="max-width:640px;">
+          <div class="settings-section">
+            <h3>Agency Profile</h3>
+            <div class="grid-2">
+              <div class="form-group"><label>Agency Name</label><input type="text" id="set-agency-name" placeholder="Agency Name"/></div>
+              <div class="form-group"><label>License Number</label><input type="text" id="set-license" placeholder="License #"/></div>
+              <div class="form-group"><label>Phone</label><input type="text" id="set-phone" placeholder="Phone"/></div>
+              <div class="form-group"><label>WhatsApp Number</label><input type="text" id="set-whatsapp" placeholder="+251..."/></div>
+            </div>
+            <div class="form-group"><label>Address</label><textarea id="set-address" rows="2" placeholder="Agency address"></textarea></div>
+          </div>
+          <div class="settings-section">
+            <h3>Preferences</h3>
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Default Currency</label>
+                <select id="set-currency">
+                  <option value="USD">USD – US Dollar ($)</option>
+                  <option value="ETB">ETB – Ethiopian Birr (ብር)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Default Destination</label>
+                <select id="set-dest">
+                  <option value="">No default</option>
+                  <option value="SA">Saudi Arabia</option>
+                  <option value="AE">UAE</option>
+                  <option value="QA">Qatar</option>
+                  <option value="KW">Kuwait</option>
+                  <option value="BH">Bahrain</option>
+                  <option value="OM">Oman</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Twilio WhatsApp</h3>
+            <p class="text-slate text-sm" style="margin-bottom:12px;">Connect your Twilio account to send WhatsApp notifications to clients. Available on Professional plan+.</p>
+            <div class="grid-2">
+              <div class="form-group"><label>Twilio Account SID</label><input type="text" id="set-twilio-sid" placeholder="ACxxxxxxxx"/></div>
+              <div class="form-group"><label>Twilio Auth Token</label><input type="password" id="set-twilio-token" placeholder="Auth Token"/></div>
+            </div>
+            <div class="form-group"><label>Twilio WhatsApp From Number</label><input type="text" id="set-twilio-from" placeholder="whatsapp:+14155238886"/></div>
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+        </div>
+      </div><!-- /tab-settings -->
+
+      <!-- TAB: BILLING -->
+      <div id="tab-billing" class="hidden">
+        <div style="max-width:800px;">
+          <div class="card" style="margin-bottom:24px;">
+            <div class="flex-between">
+              <div>
+                <h3 style="font-size:18px;">Current Plan: <span id="billing-plan-name" class="text-gold">Free Trial</span></h3>
+                <p class="text-slate text-sm mt-8" id="billing-plan-desc">3 CVs free trial. No credit card required.</p>
+              </div>
+              <div class="badge badge-amber" id="billing-plan-badge">Free Trial</div>
+            </div>
+          </div>
+
+          <!-- Currency toggle -->
+          <div class="flex gap-16" style="margin-bottom:24px;align-items:center;">
+
+          </div>
+
+          <div style="display:flex;justify-content:center;">
+            <div class="pricing-card featured" style="max-width:420px;width:100%;">
+              <div class="pricing-popular">⭐ All-Inclusive Plan</div>
+              <div class="pricing-name">GulfVisa Pro</div>
+              <div class="pricing-price" style="font-size:40px;">10,000 <span style="font-size:18px;font-weight:400;">ETB</span></div>
+              <div class="pricing-period">per year · Unlimited everything</div>
+              <button class="btn btn-primary btn-full mt-16" onclick="selectPlan('professional')">Subscribe Now</button>
+              <ul class="pricing-features">
+                <li>Unlimited CV generation</li>
+                <li>PDF download &amp; print</li>
+                <li>All 6 Gulf countries</li>
+                <li>WhatsApp integration</li>
+                <li>Analytics dashboard</li>
+                <li>Client management</li>
+                <li>Priority support</li>
+                <li>Official embassy-ready format</li>
+              </ul>
+            </div>
+          </div>
+          <!-- Revenue Summary -->
+          <div class="card card-sm" style="margin-top:24px;">
+            <div style="font-size:14px;font-weight:bold;margin-bottom:12px;">📊 Revenue Summary</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;">
+              <div class="card card-sm" style="text-align:center;">
+                <div style="color:var(--slate);font-size:11px;">Total Clients</div>
+                <div id="rev-clients" style="font-size:22px;font-weight:bold;color:var(--gold);">0</div>
+              </div>
+              <div class="card card-sm" style="text-align:center;">
+                <div style="color:var(--slate);font-size:11px;">Total CVs</div>
+                <div id="rev-cvs" style="font-size:22px;font-weight:bold;color:var(--gold);">0</div>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate mt-16">Payment via bank transfer (Commercial Bank of Ethiopia). Send receipt to WhatsApp +251967777343 or gulfvisapro7@gmail.com after payment.</p>
+        </div>
+      </div><!-- /tab-billing -->
+
+    </div><!-- /dash-content -->
+  </div><!-- /dash-main -->
+</div><!-- /page-dashboard -->
+
+<!-- ================================================================
+     PAGE: PRIVACY POLICY
+================================================================ -->
+<div id="page-privacy" class="hidden">
+  <div style="position:sticky;top:0;z-index:10;background:var(--navy-mid);padding:12px 24px;border-bottom:1px solid rgba(201,168,76,0.1);">
+    <button class="btn btn-ghost btn-sm" onclick="goBackFromLegal()">← Back</button>
+  </div>
+  <div class="legal-content">
+    <h1>Privacy Policy</h1>
+    <div class="date">Last updated: January 1, 2026</div>
+    <p>GulfVisa Pro ("we", "us", "our") is committed to protecting the personal data of your clients and your agency. This policy explains how we collect, use, store, and protect data on our platform.</p>
+    <h2>1. Data We Collect</h2>
+    <p>We collect the following data to provide our services:</p>
+    <ul>
+      <li><strong>Agency data:</strong> Name, email, license number, phone, address</li>
+      <li><strong>Client data:</strong> Full name, date of birth, passport details, religion, marital status, photo, employer information</li>
+      <li><strong>Usage data:</strong> Login times, CV generation history, plan status</li>
+    </ul>
+    <h2>2. Why We Collect It</h2>
+    <p>Client data is collected solely to generate official visa CV documents on behalf of licensed visa agencies. We do not sell, share, or use this data for marketing, advertising, or any purpose beyond delivering the service.</p>
+    <h2>3. How We Store and Protect It</h2>
+    <p>All data is stored in Supabase-managed databases with row-level security — meaning each agency can only access their own client data. Passwords are hashed and never stored in plaintext. All data in transit is encrypted via HTTPS/TLS. Client photos are stored in private, access-controlled storage buckets.</p>
+    <h2>4. Data Retention</h2>
+    <p>Client data is retained for as long as your agency account is active. You may delete any client record at any time from your dashboard. On account deletion, all associated client data is permanently removed within 30 days.</p>
+    <h2>5. Your Rights (GDPR)</h2>
+    <p>If you or your clients are in the EU/EEA or jurisdictions with similar data protection laws, you have the right to access, correct, export, or delete personal data. Contact us at <a href="mailto:privacy@gulfvisapro.com">privacy@gulfvisapro.com</a> to exercise these rights.</p>
+    <h2>6. Third-Party Services</h2>
+    <p>We use the following third-party services, each with their own privacy policies:</p>
+    <ul>
+      <li><strong>Supabase</strong> — database and authentication hosting</li>
+      <li><strong>Stripe</strong> — payment processing (we do not store card details)</li>
+      <li><strong>Twilio</strong> — WhatsApp notification delivery</li>
+    </ul>
+    <h2>7. Contact</h2>
+    <p>For privacy concerns: <a href="mailto:privacy@gulfvisapro.com">privacy@gulfvisapro.com</a></p>
+  </div>
+</div><!-- /page-privacy -->
+
+<!-- ================================================================
+     PAGE: TERMS OF SERVICE
+================================================================ -->
+<div id="page-terms" class="hidden">
+  <div style="position:sticky;top:0;z-index:10;background:var(--navy-mid);padding:12px 24px;border-bottom:1px solid rgba(201,168,76,0.1);">
+    <button class="btn btn-ghost btn-sm" onclick="goBackFromLegal()">← Back</button>
+  </div>
+  <div class="legal-content">
+    <h1>Terms of Service</h1>
+    <div class="date">Last updated: January 1, 2026</div>
+    <p>By creating an account on GulfVisa Pro, you agree to these Terms of Service. Please read them carefully.</p>
+    <h2>1. Who Can Use GulfVisa Pro</h2>
+    <p>GulfVisa Pro is a platform designed exclusively for <strong>licensed visa agencies</strong>. By registering, you confirm that your agency holds a valid license to operate as a visa intermediary in your jurisdiction. We reserve the right to suspend accounts that cannot verify this.</p>
+    <h2>2. Our Service</h2>
+    <p>GulfVisa Pro provides tools to generate formatted visa application CV documents. We do not guarantee visa approval, act as a visa sponsor, or represent any Gulf embassy or government. We are a software tool for agencies — not an official embassy platform.</p>
+    <h2>3. Your Responsibilities</h2>
+    <ul>
+      <li>You are responsible for the accuracy of client data you enter</li>
+      <li>You must obtain client consent before entering their personal data</li>
+      <li>You must not use the platform for fraudulent applications</li>
+      <li>You must comply with all applicable immigration and data protection laws</li>
+    </ul>
+    <h2>4. Payments & Refunds</h2>
+    <p>Starter plan charges are per CV generated. Monthly plans are billed in advance and are non-refundable except within 7 days of initial subscription for first-time subscribers. Failed or duplicate charges will be refunded promptly.</p>
+    <h2>5. Limitation of Liability</h2>
+    <p>GulfVisa Pro is provided "as is". We are not liable for visa rejections, embassy policy changes, or any decisions made by immigration authorities. Our maximum liability is limited to the amount paid by your agency in the 3 months preceding any claim.</p>
+    <h2>6. Termination</h2>
+    <p>We reserve the right to suspend or terminate accounts that violate these terms, engage in fraud, or misuse client data. You may terminate your account at any time from Settings.</p>
+    <h2>7. Contact</h2>
+    <p>For legal inquiries: <a href="mailto:legal@gulfvisapro.com">legal@gulfvisapro.com</a></p>
+  </div>
+</div><!-- /page-terms -->
+
+<!-- ================================================================
+     MODAL: ADD CLIENT
+================================================================ -->
+<div id="modal-add-client" class="modal-overlay hidden">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-add-client')">✕</button>
+    <div class="modal-title">Add New Client</div>
+    <div class="form-group"><label>Full Name</label><input type="text" id="client-name" placeholder="Full Name"/></div>
+    <div class="form-group"><label>Phone</label><input type="text" id="client-phone" placeholder="Phone"/></div>
+    <div class="form-group"><label>Passport Number</label><input type="text" id="client-passport" placeholder="Passport Number"/></div>
+    <div class="form-group"><label>Notes</label><textarea id="add-client-notes" placeholder="Any notes about this client..." rows="2" style="width:100%;resize:vertical;"></textarea></div>
+    <button class="btn btn-primary btn-full mt-16" onclick="addClient()">Add Client</button>
+  </div>
+</div>
+
+<!-- ================================================================
+     MODAL: PAYMENT
+================================================================ -->
+<div id="modal-payment" class="modal-overlay hidden">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-payment')">✕</button>
+    <div class="modal-title">Upgrade Plan</div>
+
+    <!-- Price summary -->
+    <div class="card card-sm" style="margin-bottom:20px;text-align:center;">
+      <div style="font-size:13px;color:var(--slate);margin-bottom:4px;">GulfVisa Pro — All-Inclusive Plan</div>
+      <div style="font-size:32px;font-weight:bold;color:var(--gold);">10,000 <span style="font-size:16px;">ETB</span></div>
+      <div style="font-size:12px;color:var(--slate);margin-top:4px;">per year · Unlimited everything</div>
+    </div>
+
+    <!-- Bank transfer instructions -->
+    <div class="card card-sm" style="margin-bottom:20px;">
+      <p style="font-size:13px;font-weight:bold;margin-bottom:12px;">🏦 Bank Transfer Instructions</p>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:12px;">
+        <span style="color:var(--slate);">Bank:</span><strong>Commercial Bank of Ethiopia</strong>
+        <span style="color:var(--slate);">Account No:</span><strong style="color:var(--gold);font-size:14px;letter-spacing:1px;">1000637549263</strong>
+        <span style="color:var(--slate);">Account Name:</span><strong>Mohammed Sultan Buser</strong>
+        <span style="color:var(--slate);">Amount:</span><strong>10,000 ETB</strong>
+      </div>
+    </div>
+
+    <!-- Send receipt instructions -->
+    <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:8px;padding:12px;margin-bottom:20px;font-size:12px;">
+      <p style="font-weight:bold;margin-bottom:8px;">📤 After transfer, send your receipt to:</p>
+      <p style="margin-bottom:6px;">📱 WhatsApp: <a href="https://wa.me/251967777343" style="color:var(--gold);font-weight:bold;">+251 96 777 7343</a></p>
+      <p>📧 Email: <a href="mailto:gulfvisapro7@gmail.com" style="color:var(--gold);">gulfvisapro7@gmail.com</a></p>
+      <p style="color:var(--slate);margin-top:8px;">Your plan will be activated within 2 hours of receipt confirmation.</p>
+    </div>
+
+    <button class="btn btn-primary btn-full" onclick="processPayment()">✅ I've Made the Transfer</button>
+  </div>
+</div>
+
+<!-- ================================================================
+     JAVASCRIPT
+================================================================ -->
+<script>
+// ----------------------------------------------------------------
+// UTILS
+// ----------------------------------------------------------------
+function togglePass(fieldId, btn) {
+  const input = document.getElementById(fieldId);
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+
+// ----------------------------------------------------------------
+// CONFIG — REPLACE WITH YOUR ACTUAL KEYS
+// ----------------------------------------------------------------
+const SUPABASE_URL = 'https://pgdjcozsompqmbqzzyki.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBnZGpjb3pzb21wcW1icXp6eWtpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NTQ3MDYsImV4cCI6MjA5NDAzMDcwNn0.p5xfjIi-7DD4apVhu9fTSn8JdK2CPAVWH99pd726CAI';
+const STRIPE_PUBLISHABLE_KEY = 'YOUR_STRIPE_PUBLISHABLE_KEY';
+// Twilio is called server-side; store credentials in Settings only
+
+// ----------------------------------------------------------------
+// SUPABASE INIT
+// ----------------------------------------------------------------
+let sb = null;
+try {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch(e) {
+  console.warn('Supabase not configured yet. Running in demo mode.');
+}
+
+// ----------------------------------------------------------------
+// APP STATE
+// ----------------------------------------------------------------
+let currentUser = null;
+let agencyProfile = null;
+let applications = [];
+let clients = [];
+let currentPlan = 'trial'; // trial | starter | professional | enterprise
+let trialRemaining = 3;
+let cvPhotoDataUrl = null;
+let lastPage = 'landing';
+let pendingPlan = null;
+
+const COUNTRY_NAMES = {SA:'Saudi Arabia',AE:'United Arab Emirates',QA:'Qatar',KW:'Kuwait',BH:'Bahrain',OM:'Oman'};
+const CURRENCY_RATES = {usd:{sym:'$',etb_rate:120},etb:{sym:'ብር',etb_rate:1}};
+
+// ----------------------------------------------------------------
+// PAGE NAVIGATION
+// ----------------------------------------------------------------
+const PAGES = ['landing','auth','dashboard','privacy','terms'];
+
+function showPage(page) {
+  PAGES.forEach(p => {
+    const el = document.getElementById('page-' + p);
+    if (el) el.classList.toggle('hidden', p !== page);
+  });
+  if (page !== 'privacy' && page !== 'terms') lastPage = page;
+  window.scrollTo(0, 0);
+}
+
+function goBackFromLegal() {
+  showPage(lastPage || 'landing');
+}
+
+// ----------------------------------------------------------------
+// TOAST
+// ----------------------------------------------------------------
+function toast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.style.opacity = '0', 3000);
+  setTimeout(() => el.remove(), 3400);
+}
+
+// ----------------------------------------------------------------
+// MODAL
+// ----------------------------------------------------------------
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+// ----------------------------------------------------------------
+// AUTH
+// ----------------------------------------------------------------
+function switchAuthTab(tab) {
+  document.getElementById('tab-signin').classList.toggle('active', tab === 'signin');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('form-signin').classList.toggle('hidden', tab !== 'signin');
+  document.getElementById('form-register').classList.toggle('hidden', tab !== 'register');
+}
+
+async function handleSignIn() {
+  const email = document.getElementById('signin-email').value.trim();
+  const password = document.getElementById('signin-password').value;
+  if (!email || !password) { toast('Please fill in all fields', 'error'); return; }
+
+  if (!sb) {
+    currentUser = { id: 'demo', email };
+    agencyProfile = { agency_name: 'Demo Agency', full_name: 'Agent', currency: 'USD', plan: 'trial', trial_remaining: 3 };
+    toast('Demo mode', 'warning');
+    enterDashboard(); return;
+  }
+  toast('Signing in...', 'info');
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) { toast(error.message, 'error'); return; }
+  currentUser = data.user;
+  await loadAgencyProfile();
+  if (!agencyProfile) {
+    const meta = data.user.user_metadata || {};
+    const fallback = { agency_name: meta.agency_name || 'My Agency', full_name: meta.owner_name || 'Agent', currency: 'USD', plan: 'trial', trial_remaining: 3 };
+    const { error: insErr } = await sb.from('profiles').insert({ id: currentUser.id, email: currentUser.email, agency_name: fallback.agency_name, full_name: fallback.owner_name });
+    localStorage.setItem('gv_plan_' + currentUser.id, fallback.plan || 'trial');
+    localStorage.setItem('gv_trial_' + currentUser.id, fallback.trial_remaining ?? 3);
+    localStorage.setItem('gv_currency_' + currentUser.id, fallback.currency || 'USD');
+    if (insErr) agencyProfile = fallback;
+    else await loadAgencyProfile();
+  }
+  enterDashboard();
+}
+
+async function handleRegister() {
+  const agencyName = document.getElementById('reg-agency').value.trim();
+  const ownerName = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const license = document.getElementById('reg-license').value.trim();
+  const currency = document.getElementById('reg-currency').value;
+
+  if (!agencyName || !ownerName || !email || !password) { toast('Please fill in all fields', 'error'); return; }
+  if (password.length < 8) { toast('Password must be at least 8 characters', 'error'); return; }
+
+  if (!sb) {
+    currentUser = { id: 'demo', email };
+    agencyProfile = { agency_name: agencyName, full_name: ownerName, currency, plan: 'trial', trial_remaining: 3 };
+    toast('Demo mode', 'warning');
+    enterDashboard(); return;
+  }
+  toast('Creating account...', 'info');
+  const { data, error } = await sb.auth.signUp({ email, password,
+    options: { data: { agency_name: agencyName, owner_name: ownerName } }
+  });
+  if (error) { toast(error.message, 'error'); return; }
+  if (!data.user || !data.session) {
+    toast('Account created! Check your email to confirm, then sign in.', 'success');
+    switchAuthTab('signin'); return;
+  }
+  currentUser = data.user;
+  const { error: insErr } = await sb.from('profiles').insert({
+    id: currentUser.id,
+    email: currentUser.email,
+    agency_name: agencyName,
+    full_name: ownerName,
+    license: license
+  });
+  // Store plan/trial/currency in localStorage (not in profiles table)
+  localStorage.setItem('gv_plan_' + currentUser.id, 'trial');
+  localStorage.setItem('gv_trial_' + currentUser.id, '3');
+  localStorage.setItem('gv_currency_' + currentUser.id, currency);
+  if (insErr) {
+    console.error('Profile insert error:', insErr.message);
+    toast('Profile save failed: ' + insErr.message, 'error');
+    agencyProfile = { agency_name: agencyName, owner_name: ownerName, full_name: ownerName, currency, plan: 'trial', trial_remaining: 3 };
+  } else {
+    await loadAgencyProfile();
+  }
+  enterDashboard();
+}
+
+async function loadAgencyProfile() {
+  if (!sb) return;
+  const { data, error } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+  if (error && error.code !== 'PGRST116') console.error('loadAgencyProfile:', error.message);
+  if (data) {
+    agencyProfile = data;
+    // normalize full_name → owner_name for UI
+    if (!agencyProfile.owner_name && agencyProfile.full_name) agencyProfile.owner_name = agencyProfile.full_name;
+    // always read plan/trial from Supabase (source of truth)
+    agencyProfile.plan = data.plan || 'trial';
+    agencyProfile.trial_remaining = data.trial_remaining ?? 3;
+    agencyProfile.currency = data.currency || 'USD';
+    // sync localStorage with Supabase values
+    localStorage.setItem('gv_plan_' + currentUser.id, agencyProfile.plan);
+    localStorage.setItem('gv_trial_' + currentUser.id, agencyProfile.trial_remaining);
+  }
+}
+
+async function loadApplications() {
+  if (!sb) { applications = []; return; }
+  const { data, error } = await sb.from('applications').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+  if (error) console.error('loadApplications:', error.message);
+  applications = data || [];
+}
+
+async function loadClients() {
+  if (!sb) { clients = []; return; }
+  const { data, error } = await sb.from('clients').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+  if (error) console.error('loadClients:', error.message);
+  clients = data || [];
+}
+
+function enterDashboard() {
+  if (!agencyProfile) agencyProfile = { agency_name: 'Agency', full_name: 'Agent', currency: 'USD', plan: 'trial', trial_remaining: 3 };
+  currentPlan = agencyProfile.plan || 'trial';
+  trialRemaining = agencyProfile.trial_remaining ?? 3;
+
+  // Update sidebar
+  const name = agencyProfile.agency_name || 'Agency';
+  document.getElementById('sidebar-name').textContent = name;
+  document.getElementById('sidebar-avatar').textContent = name.charAt(0).toUpperCase();
+
+  // Load data & render
+  (async () => {
+    await Promise.all([loadApplications(), loadClients()]);
+    renderOverview();
+    renderApplications();
+    renderClients();
+    setTimeout(checkExpiryNotifications, 2000);
+  })();
+
+  updateTrialBanner();
+  updatePlanBadge();
+  showPage('dashboard');
+  showTab('tab-overview');
+  toast('Welcome back, ' + (agencyProfile.owner_name || 'Agent') + '!', 'success');
+}
+
+async function handleSignOut() {
+  if (sb) await sb.auth.signOut();
+  currentUser = null; agencyProfile = null; applications = []; clients = [];
+  showPage('landing');
+  toast('Signed out successfully');
+}
+
+// ----------------------------------------------------------------
+// CHECK SESSION ON LOAD
+// ----------------------------------------------------------------
+window.addEventListener('load', async () => {
+  if (sb) {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      currentUser = session.user;
+      await loadAgencyProfile();
+      enterDashboard();
+    }
+  }
+});
+
+// ----------------------------------------------------------------
+// DASHBOARD TABS
+// ----------------------------------------------------------------
+const TAB_TITLES = {
+  'tab-overview':'Dashboard','tab-generate':'Generate CV','tab-applications':'Applications',
+  'tab-clients':'Clients','tab-countries':'Countries','tab-settings':'Settings','tab-billing':'Billing'
+};
+const NAV_MAP = {
+  'tab-overview':'nav-overview','tab-generate':'nav-generate','tab-applications':'nav-applications',
+  'tab-clients':'nav-clients','tab-countries':'nav-countries','tab-settings':'nav-settings','tab-billing':'nav-billing'
+};
+
+function showTab(tab) {
+  Object.keys(TAB_TITLES).forEach(t => {
+    const el = document.getElementById(t);
+    if (el) el.classList.toggle('hidden', t !== tab);
+    const nav = document.getElementById(NAV_MAP[t]);
+    if (nav) nav.classList.toggle('active', t === tab);
+  });
+  document.getElementById('dash-page-title').textContent = TAB_TITLES[tab] || '';
+  if (tab === 'tab-overview') { renderOverview(); }
+  if (tab === 'tab-applications') renderApplications();
+  if (tab === 'tab-clients') renderClients();
+  if (tab === 'tab-settings') populateSettings();
+  if (tab === 'tab-billing') { updatePlanBadge(); updateRevenueTracker(); }
+}
+
+// ----------------------------------------------------------------
+// TRIAL / PLAN
+// ----------------------------------------------------------------
+// Auto-refresh plan from Supabase every 5 minutes
+async function refreshPlan() {
+  if (!sb || !currentUser) return;
+  const { data } = await sb.from('profiles').select('plan, trial_remaining').eq('id', currentUser.id).single();
+  if (data) {
+    const newPlan = data.plan || 'trial';
+    const newTrial = data.trial_remaining ?? 3;
+    if (newPlan !== currentPlan) {
+      currentPlan = newPlan;
+      trialRemaining = newTrial;
+      if (agencyProfile) agencyProfile.plan = newPlan;
+      localStorage.setItem('gv_plan_' + currentUser.id, newPlan);
+      updateTrialBanner();
+      updatePlanBadge();
+      if (newPlan !== 'trial') toast('🎉 Your plan has been activated!', 'success');
+    }
+  }
+}
+setInterval(refreshPlan, 5 * 60 * 1000); // every 5 minutes
+
+function updateTrialBanner() {
+  const banner = document.getElementById('trial-banner');
+  if (currentPlan !== 'trial') { banner.classList.add('hidden'); return; }
+  banner.classList.remove('hidden');
+  document.getElementById('trial-remaining').textContent = trialRemaining;
+  const fill = Math.max(0, (trialRemaining / 3) * 100);
+  document.getElementById('trial-bar-fill').style.width = fill + '%';
+}
+
+function updatePlanBadge() {
+  const badge = document.getElementById('plan-badge');
+  const isPaid = currentPlan !== 'trial';
+  const label = isPaid ? 'Active' : 'Free Trial';
+  if (badge) {
+    badge.textContent = label;
+    badge.className = 'badge ' + (isPaid ? 'badge-green' : 'badge-amber');
+  }
+
+  // Update billing page
+  const billingName = document.getElementById('billing-plan-name');
+  const billingBadge = document.getElementById('billing-plan-badge');
+  const billingDesc = document.getElementById('billing-plan-desc');
+  if (billingName) billingName.textContent = isPaid ? 'GulfVisa Pro' : 'Free Trial';
+  if (billingBadge) {
+    billingBadge.textContent = isPaid ? 'Active' : 'Free Trial';
+    billingBadge.className = 'badge ' + (isPaid ? 'badge-green' : 'badge-amber');
+  }
+  if (billingDesc) billingDesc.textContent = isPaid
+    ? 'Active plan — Unlimited CVs. Renews yearly.'
+    : '3 CVs free trial. Upgrade for unlimited.';
+
+  // WhatsApp panel visibility — unlocked for any paid plan
+  const wap = document.getElementById('whatsapp-panel');
+  if (wap) wap.style.display = isPaid ? 'block' : 'none';
+}
+
+function canGenerateCV() {
+  if (currentPlan !== 'trial') return true; // any paid plan = unlimited
+  if (currentPlan === 'trial' && trialRemaining > 0) return true;
+  return false;
+}
+
+// ----------------------------------------------------------------
+// OVERVIEW
+// ----------------------------------------------------------------
+function checkExpiryNotifications() {
+  const today = new Date();
+  const soon = new Date(); soon.setDate(today.getDate() + 30);
+  const expiring = applications.filter(a => {
+    if (!a.passport_expiry) return false;
+    const exp = new Date(a.passport_expiry);
+    return exp <= soon && exp >= today;
+  });
+  if (expiring.length > 0) {
+    toast(`⚠️ ${expiring.length} passport(s) expiring within 30 days!`, 'warning');
+  }
+}
+
+function renderOverview() {
+  const total = applications.length;
+  const approved = applications.filter(a => a.status === 'Approved').length;
+  const pending = applications.filter(a => a.status === 'Pending' || a.status === 'Processing').length;
+  const rejected = applications.filter(a => a.status === 'Rejected').length;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-approved').textContent = approved;
+  document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-rejected').textContent = rejected;
+  document.getElementById('stat-rate').textContent = total ? Math.round((approved/total)*100) + '% approval rate' : '— approval rate';
+
+  const tbody = document.getElementById('recent-apps-body');
+  const recent = applications.slice(0, 5);
+  if (!recent.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--slate);padding:32px;">No applications yet. <a href="#" onclick="showTab(\'tab-generate\');return false;">Generate your first CV →</a></td></tr>';
+    return;
+  }
+  tbody.innerHTML = recent.map(a => `
+    <tr>
+      <td>${a.name || a.client_name}</td>
+      <td>${a.passport || a.passport_no || '—'}</td>
+      <td>${COUNTRY_NAMES[a.country] || a.country}</td>
+      <td>${a.workertype || a.worker_type}</td>
+      <td>${formatDate(a.created_at)}</td>
+      <td><span class="badge ${statusBadge(a.status)}">${a.status}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="changeStatus('${a.id}')">Update</button></td>
+    </tr>`).join('');
+}
+
+function statusBadge(s) {
+  if (s === 'Approved') return 'badge-green';
+  if (s === 'Rejected') return 'badge-red';
+  if (s === 'Processing') return 'badge-amber';
+  return 'badge-slate';
+}
+function formatDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function changeStatus(id) {
+  const app = applications.find(a => a.id === id);
+  if (!app) return;
+  const statuses = ['Pending','Processing','Approved','Rejected'];
+  const idx = statuses.indexOf(app.status);
+  const next = statuses[(idx + 1) % statuses.length];
+  app.status = next;
+  if (sb) {
+    sb.from('applications').update({ status: next }).eq('id', id);
+  }
+  renderOverview(); renderApplications();
+  toast('Status updated to: ' + next, 'success');
+}
+
+// ----------------------------------------------------------------
+// APPLICATIONS
+// ----------------------------------------------------------------
+function renderApplications() {
+  const fc = document.getElementById('filter-country')?.value || '';
+  const fs = document.getElementById('filter-status')?.value || '';
+  const sq = (document.getElementById('app-search')?.value || '').toLowerCase();
+  let filtered = applications;
+  if (fc) filtered = filtered.filter(a => a.country === fc);
+  if (fs) filtered = filtered.filter(a => a.status === fs);
+  if (sq) filtered = filtered.filter(a =>
+    (a.name||'').toLowerCase().includes(sq) ||
+    (a.passport||'').toLowerCase().includes(sq) ||
+    (a.employer||'').toLowerCase().includes(sq)
+  );
+
+  const tbody = document.getElementById('applications-body');
+  if (!tbody) return;
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--slate);padding:32px;">No applications found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(a => `
+    <tr>
+      <td>${a.name || a.name || a.client_name || '—'}</td>
+      <td>${a.passport || a.passport || a.passport_no || '—'}</td>
+      <td>${COUNTRY_NAMES[a.country] || a.country || '—'}</td>
+      <td>${a.workertype || a.workertype || a.worker_type || '—'}</td>
+      <td>${formatDate(a.created_at)}</td>
+      <td><span class="badge ${statusBadge(a.status)}">${a.status || 'Pending'}</span></td>
+      <td>
+        <button class="btn btn-primary btn-sm" onclick="openAppDetail('${a.id}')">👁 View</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteApplication('${a.id}')">Del</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function deleteApplication(id) {
+  applications = applications.filter(a => a.id !== id);
+  if (sb) {
+    await sb.from('applications').delete().eq('id', id);
+  }
+  renderApplications(); renderOverview();
+  toast('Application deleted', 'success');
+}
+
+// ----------------------------------------------------------------
+// CLIENTS
+// ----------------------------------------------------------------
+function renderClients() {
+  const search = (document.getElementById('client-search')?.value || '').toLowerCase();
+  let filtered = clients;
+  if (search) filtered = filtered.filter(c => c.name.toLowerCase().includes(search) || (c.passport||'').toLowerCase().includes(search));
+  const tbody = document.getElementById('clients-body');
+  if (!tbody) return;
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--slate);padding:32px;">No clients found. <a href="#" onclick="openAddClientModal();return false;">Add your first client →</a></td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(c => `
+    <tr>
+      <td>${c.name}</td>
+      <td>${c.phone || '—'}</td>
+      <td>${c.passport || '—'}</td>
+      <td>${applications.filter(a => a.name || a.client_name === c.name).length}</td>
+      <td>${formatDate(c.created_at)}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="prefillFromClient('${c.id}')">Generate CV</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')">Del</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openAddClientModal() { openModal('modal-add-client'); }
+
+async function addClient() {
+  const name = document.getElementById('client-name').value.trim();
+  const phone = document.getElementById('client-phone').value.trim();
+  const passport = document.getElementById('client-passport').value.trim();
+  if (!name) { toast('Client name is required', 'error'); return; }
+  const client = { id: 'c_'+Date.now(), name, phone, passport, created_at: new Date().toISOString() };
+  if (sb) {
+    const { data, error: clientErr } = await sb.from('clients').insert({ 
+      id: 'c_' + Date.now(),
+      user_id: currentUser.id, 
+      name, phone, passport, 
+      nationality: document.getElementById('add-client-nationality')?.value || '',
+      notes: document.getElementById('add-client-notes')?.value || ''
+    }).select().single();
+    if (clientErr) {
+      console.error('Client save error:', clientErr.message);
+      toast('Save error: ' + clientErr.message, 'error');
+      return;
+    }
+    if (data) client.id = data.id;
+  }
+  clients.unshift(client);
+  closeModal('modal-add-client');
+  renderClients();
+  toast('Client added successfully', 'success');
+  document.getElementById('client-name').value = '';
+  document.getElementById('client-phone').value = '';
+  document.getElementById('client-passport').value = '';
+}
+
+async function deleteClient(id) {
+  clients = clients.filter(c => c.id !== id);
+  if (sb) {
+    await sb.from('clients').delete().eq('id', id);
+  }
+  renderClients();
+  toast('Client deleted');
+}
+
+function prefillFromClient(id) {
+  const c = clients.find(cl => cl.id === id);
+  if (!c) return;
+  const parts = c.name.split(' ');
+  document.getElementById('cv-fname').value = parts[0] || '';
+  document.getElementById('cv-lname').value = parts.slice(1).join(' ') || '';
+  document.getElementById('cv-passport').value = c.passport || '';
+  document.getElementById('cv-phone').value = c.phone || '';
+  showTab('tab-generate');
+  updateCVPreview();
+  toast('Client data loaded into form', 'success');
+}
+
+// ----------------------------------------------------------------
+// CV FORM & PREVIEW
+// ----------------------------------------------------------------
+function handlePhotoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    cvPhotoDataUrl = e.target.result;
+    document.getElementById('photo-preview-img').src = cvPhotoDataUrl;
+    document.getElementById('photo-preview-img').classList.remove('hidden');
+    document.getElementById('photo-placeholder-wrap').classList.add('hidden');
+    document.getElementById('preview-photo-img').src = cvPhotoDataUrl;
+    document.getElementById('preview-photo-img').style.display = 'block';
+    document.getElementById('preview-photo-icon').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function g(id) { return document.getElementById(id)?.value || ''; }
+
+function updateCVPreview() {
+  const fname = g('cv-fname'), lname = g('cv-lname');
+  const fullname = (fname + ' ' + lname).trim() || '— Full Name —';
+  const country = g('cv-country');
+  const countryName = COUNTRY_NAMES[country] || '—';
+
+  document.getElementById('preview-fullname').textContent = fullname;
+  document.getElementById('preview-nationality').textContent = 'Nationality: ' + (g('cv-nationality') || '—');
+  document.getElementById('preview-profession').textContent = 'Profession: ' + (g('cv-worker') || '—');
+  document.getElementById('preview-passport').textContent = 'Passport: ' + (g('cv-passport') || '—');
+  document.getElementById('preview-visa').textContent = 'Visa No: ' + (g('cv-visa-no') || '—');
+
+  const embassyHeaders = {
+    SA:'EMBASSY OF SAUDI ARABIA — CONSULAR SECTION',
+    AE:'EMBASSY OF THE UAE — CONSULAR SECTION',
+    QA:'EMBASSY OF QATAR — CONSULAR SECTION',
+    KW:'EMBASSY OF KUWAIT — CONSULAR SECTION',
+    BH:'EMBASSY OF BAHRAIN — CONSULAR SECTION',
+    OM:'EMBASSY OF OMAN — CONSULAR SECTION',
+  };
+  document.getElementById('preview-embassy-header').textContent = embassyHeaders[country] || 'GULF EMBASSY — CONSULAR SECTION';
+
+  const fields = {
+    'p-dob': g('cv-dob'), 'p-pob': g('cv-pob'), 'p-gender': g('cv-gender'),
+    'p-marital': g('cv-marital'), 'p-religion': g('cv-religion'), 'p-sect': g('cv-sect'),
+    'p-edu': g('cv-edu'), 'p-exp': g('cv-exp'), 'p-langs': g('cv-langs'),
+    'p-poi': g('cv-poi'), 'p-expiry': g('cv-expiry'),
+    'p-phone': g('cv-phone'), 'p-city': g('cv-city'),
+    'p-sponsor': g('cv-sponsor'), 'p-emp-phone': g('cv-emp-phone'),
+    'p-dest-city': g('cv-dest-city'), 'p-country': countryName,
+  };
+  Object.entries(fields).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val || '—';
+  });
+}
+
+function clearCVForm() {
+  ['cv-country','cv-worker','cv-fname','cv-lname','cv-mother','cv-pob','cv-dob','cv-gender',
+   'cv-nationality','cv-religion','cv-sect','cv-marital','cv-passport','cv-poi','cv-issue-date',
+   'cv-expiry','cv-phone','cv-city','cv-address','cv-edu','cv-exp','cv-langs','cv-skills',
+   'cv-prev-work','cv-visa-no','cv-sponsor','cv-emp-phone','cv-dest-city'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  cvPhotoDataUrl = null;
+  document.getElementById('photo-preview-img').classList.add('hidden');
+  document.getElementById('photo-placeholder-wrap').classList.remove('hidden');
+  document.getElementById('preview-photo-img').src = '';
+  document.getElementById('preview-photo-img').style.display = 'none';
+  document.getElementById('preview-photo-icon').style.display = 'block';
+  updateCVPreview();
+  document.getElementById('btn-download-pdf').disabled = true;
+  document.getElementById('btn-print').disabled = true;
+}
+
+async function generateCV() {
+  const fname = g('cv-fname'), lname = g('cv-lname'), country = g('cv-country'), worker = g('cv-worker');
+  if (!fname || !lname) { toast('Please enter client first and last name', 'error'); return; }
+  if (!country) { toast('Please select a destination country', 'error'); return; }
+  if (!worker) { toast('Please select a worker type', 'error'); return; }
+
+  if (!canGenerateCV()) {
+    showTab('tab-billing');
+    toast('Free trial limit reached. Please upgrade to continue.', 'error');
+    return;
+  }
+
+  // Decrement trial
+  if (currentPlan === 'trial') {
+    trialRemaining = Math.max(0, trialRemaining - 1);
+    if (agencyProfile) agencyProfile.trial_remaining = trialRemaining;
+    if (sb) {
+      localStorage.setItem('gv_trial_' + currentUser.id, trialRemaining);
+    }
+    updateTrialBanner();
+  }
+
+  // Save application
+  const app = {
+    id: 'app_' + Date.now(),
+    client_name: fname + ' ' + lname,
+    passport_no: g('cv-passport'),
+    country,
+    worker_type: worker,
+    status: 'Pending',
+    created_at: new Date().toISOString(),
+    data: collectFormData()
+  };
+
+  if (sb) {
+    const d = collectFormData();
+    const { data, error: appErr } = await sb.from('applications').insert({
+      user_id: currentUser.id,
+      name: (d.fname + ' ' + d.lname).trim(),
+      passport: d.passport,
+      country: d.country,
+      workertype: d.worker,
+      status: 'Pending',
+      date: new Date().toISOString().split('T')[0],
+      phone: d.phone,
+      city: d.city,
+      nationality: d.nationality,
+      gender: d.gender,
+      religion: d.religion,
+      marital: d.marital,
+      education: d.edu,
+      placeofissue: d.poi,
+      languages: d.langs,
+      skills: d.skills,
+      workexp: d.prev_work,
+      employer: d.sponsor,
+      employerphone: d.emp_phone,
+      type: d.visa_no,
+      photo: d.photo || null
+    }).select().single();
+    if (appErr) {
+      console.error('Application save error:', appErr.message, appErr.details, appErr.hint);
+      toast('Save error: ' + appErr.message, 'error');
+    }
+    if (data) app.id = data.id;
+  }
+  applications.unshift(app);
+
+  // Enable download buttons
+  document.getElementById('btn-download-pdf').disabled = false;
+  document.getElementById('btn-print').disabled = false;
+
+  renderOverview();
+  toast('CV generated successfully! Download or print below.', 'success');
+}
+
+function collectFormData() {
+  return {
+    fname: g('cv-fname'), lname: g('cv-lname'), mother: g('cv-mother'),
+    pob: g('cv-pob'), dob: g('cv-dob'), gender: g('cv-gender'),
+    nationality: g('cv-nationality'), religion: g('cv-religion'), sect: g('cv-sect'),
+    marital: g('cv-marital'), passport: g('cv-passport'), poi: g('cv-poi'),
+    issue_date: g('cv-issue-date'), expiry: g('cv-expiry'),
+    phone: g('cv-phone'), city: g('cv-city'), address: g('cv-address'),
+    edu: g('cv-edu'), exp: g('cv-exp'), langs: g('cv-langs'),
+    skills: g('cv-skills'), prev_work: g('cv-prev-work'),
+    visa_no: g('cv-visa-no'), sponsor: g('cv-sponsor'),
+    emp_phone: g('cv-emp-phone'), dest_city: g('cv-dest-city'),
+    country: g('cv-country'), worker: g('cv-worker'), photo: cvPhotoDataUrl
+  };
+}
+
+// ----------------------------------------------------------------
+// ENJAZ-STYLE CV BUILDER
+// ----------------------------------------------------------------
+function getPurposeBoxes(worker) {
+  var items = ['Work','Transit','Visit','Umrah','Residence','Hajj','Diplomacy'];
+  var arMap = {'Work':'عمل','Transit':'مرور','Visit':'زيارة','Umrah':'عمرة','Residence':'للإقامة','Hajj':'حج','Diplomacy':'دبلوماسية'};
+  var visitTypes = ['Visit / Tourism','Family Visit','Business Visit'];
+  var umrahTypes = ['Umrah'];
+  var hajjTypes = ['Hajj'];
+  var transitTypes = ['Transit'];
+  var residenceTypes = ['Residence','Student','Free Visa'];
+  return items.map(function(p) {
+    var active = false;
+    if(p==='Work' && !visitTypes.includes(worker) && !umrahTypes.includes(worker) && !hajjTypes.includes(worker) && !transitTypes.includes(worker) && !residenceTypes.includes(worker)) active=true;
+    if(p==='Visit' && visitTypes.includes(worker)) active=true;
+    if(p==='Umrah' && umrahTypes.includes(worker)) active=true;
+    if(p==='Hajj' && hajjTypes.includes(worker)) active=true;
+    if(p==='Transit' && transitTypes.includes(worker)) active=true;
+    if(p==='Residence' && residenceTypes.includes(worker)) active=true;
+    return '<div class="p-item '+(active?'on':'')+'">' + p + '<span class="p-ar">'+arMap[p]+'</span></div>';
+  }).join('');
+}
+
+function buildCvHTML(d) {
+  const CNAMES={SA:'Saudi Arabia',AE:'United Arab Emirates',QA:'Qatar',KW:'Kuwait',BH:'Bahrain',OM:'Oman'};
+  const PROFESSION_AR={
+    'Domestic Worker (Maid/Cleaner)':'عاملة منزلية',
+    'Driver':'سائق',
+    'Nurse / Healthcare':'ممرضة / رعاية صحية',
+    'Construction Worker':'عامل بناء',
+    'Engineer':'مهندس',
+    'Teacher':'معلم',
+    'Cook / Chef':'طباخ / شيف',
+    'Security Guard':'حارس أمن',
+    'Electrician':'كهربائي',
+    'Plumber':'سباك',
+    'Welder':'لحام',
+    'Cleaner / Janitor':'عامل نظافة',
+    'Waiter / Hospitality':'نادل / ضيافة',
+    'Farmer / Agricultural Worker':'عامل زراعي',
+    'Other Professional':'موظف مهني',
+    'Visit / Tourism':'زيارة / سياحة',
+    'Family Visit':'زيارة عائلية',
+    'Business Visit':'زيارة عمل',
+    'Umrah':'عمرة',
+    'Hajj':'حج',
+    'Transit':'عبور',
+    'Residence':'إقامة',
+    'Student':'طالب',
+    'Free Visa':'تأشيرة حرة'
+  };
+  const profAR = PROFESSION_AR[d.worker] || d.worker || '—';
+  const country=CNAMES[d.country]||d.country||'Gulf Country';
+  const fullName=(d.fname+' '+d.lname).trim();
+  const today=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  const embassyAR={SA:'سفارة المملكة العربية السعودية — القسم القنصلي',AE:'سفارة الإمارات العربية المتحدة — القسم القنصلي',QA:'سفارة دولة قطر — القسم القنصلي',KW:'سفارة دولة الكويت — القسم القنصلي',BH:'سفارة مملكة البحرين — القسم القنصلي',OM:'سفارة سلطنة عُمان — القسم القنصلي'};
+  const embassyEN={SA:'EMBASSY OF SAUDI ARABIA — CONSULAR SECTION',AE:'EMBASSY OF THE UAE — CONSULAR SECTION',QA:'EMBASSY OF QATAR — CONSULAR SECTION',KW:'EMBASSY OF KUWAIT — CONSULAR SECTION',BH:'EMBASSY OF BAHRAIN — CONSULAR SECTION',OM:'EMBASSY OF OMAN — CONSULAR SECTION'};
+  const photoTag=d.photo?`<img src="${d.photo}" style="width:90px;height:110px;object-fit:cover;border:2px solid #555;display:block;"/>`:`<div style="width:90px;height:110px;background:#e0e0e0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#888;border:2px solid #aaa;text-align:center;">PHOTO</div>`;
+  let barcodeImgTag='';
+  const barcodeValue=(d.passport||'GVISA')+'-'+(d.visa_no||'000')+'-'+Date.now().toString().slice(-6);
+  try{const bc=document.createElement('canvas');JsBarcode(bc,barcodeValue,{format:'CODE128',width:2,height:50,displayValue:true,fontSize:11,margin:6,background:'#ffffff',lineColor:'#000000'});barcodeImgTag=`<img src="${bc.toDataURL('image/png')}" style="height:55px;"/>`;}catch(e){barcodeImgTag=`<div style="font-size:9px;color:#666;">${barcodeValue}</div>`;}
+  function sec(en,ar){return `<tr><td colspan="4" style="background:#1a3a5c;color:#fff;padding:4px 8px;font-weight:bold;font-size:9.5px;"><span style="float:left;">${en}</span><span style="float:right;direction:rtl;">${ar}</span><div style="clear:both;"></div></td></tr>`;}
+  function row2(en1,ar1,v1,en2,ar2,v2){return `<tr><td style="color:#555;font-size:9px;text-align:right;width:22%;padding:4px 6px;">${ar1}<br/><span style="color:#888;">${en1}:</span></td><td style="font-weight:bold;font-size:10px;padding:4px 6px;width:28%;">${v1||'—'}</td><td style="font-weight:bold;font-size:10px;padding:4px 6px;width:28%;">${v2||'—'}</td><td style="color:#555;font-size:9px;text-align:right;width:22%;padding:4px 6px;">${ar2}<br/><span style="color:#888;">${en2}:</span></td></tr>`;}
+  function row1(en,ar,val){return `<tr><td style="color:#555;font-size:9px;text-align:right;padding:4px 6px;">${ar}<br/><span style="color:#888;">${en}:</span></td><td style="font-weight:bold;font-size:10px;padding:4px 6px;" colspan="3">${val||'—'}</td></tr>`;}
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Visa CV — ${fullName}</title>
+  <style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;font-size:10.5px;color:#111;background:#fff;padding:14px;}.page{max-width:700px;margin:0 auto;}table{width:100%;border-collapse:collapse;}td{border:1px solid #bbb;vertical-align:middle;}.top-bar{display:flex;align-items:flex-start;gap:10px;border:1.5px solid #333;padding:10px;}.agency-block{min-width:130px;font-size:9px;line-height:1.5;}.embassy-block{flex:1;text-align:center;}.ref-block{min-width:120px;font-size:9px;text-align:right;}.applicant-row{display:flex;gap:10px;border:1.5px solid #333;border-top:none;padding:10px;}.name-big{font-size:13px;font-weight:bold;margin-bottom:6px;border-bottom:1px solid #ccc;padding-bottom:4px;}.purpose-row{display:flex;gap:5px;padding:6px 8px;border:1px solid #bbb;border-top:none;flex-wrap:wrap;}.p-item{border:1px solid #888;padding:3px 7px;font-size:9px;text-align:center;min-width:48px;}.p-item.on{background:#1a3a5c;color:#fff;font-weight:bold;}.p-ar{font-size:8.5px;display:block;direction:rtl;}.dep-hdr{background:#eee;font-size:9px;font-weight:bold;text-align:center;padding:3px;}.dep-col{text-align:center;font-size:9px;padding:3px;width:25%;}.sig-box{border:1px solid #bbb;border-top:none;padding:8px 10px;}.official-row{display:flex;border:1px solid #bbb;border-top:none;}.official-cell{flex:1;padding:6px 10px;font-size:9px;}.official-cell+.official-cell{border-left:1px solid #bbb;}.barcode-row{text-align:center;padding:8px 0 4px;border-top:1px dashed #ccc;margin-top:6px;}.footer-bar{background:#1a3a5c;color:#c9a84c;text-align:center;font-size:8px;padding:5px;margin-top:5px;font-weight:bold;}@media print{body{padding:4px;}@page{size:A4;margin:7mm;}}</style>
+  </head><body><div class="page">
+  <div class="top-bar">
+    <div class="agency-block"><strong>${(agencyProfile&&agencyProfile.agency_name)||'Agency'}</strong><br/><span style="color:#555;">Licensed Visa Agency</span></div>
+    <div class="embassy-block"><div style="font-size:12px;font-weight:bold;direction:rtl;">${embassyAR[d.country]||'سفارة دولة الخليج — القسم القنصلي'}</div><div style="font-size:11px;font-weight:bold;margin-top:2px;">${embassyEN[d.country]||'GULF EMBASSY — CONSULAR SECTION'}</div><div style="font-size:10px;margin-top:5px;color:#444;">VISA APPLICATION FORM &nbsp;—&nbsp; نموذج طلب التأشيرة</div></div>
+    <div class="ref-block">${d.visa_no?`<div><span style="color:#666;">Visa No.: </span><strong>${d.visa_no}</strong></div>`:''} ${d.sponsor?`<div style="margin-top:3px;"><span style="color:#666;">Sponsor: </span><strong>${d.sponsor}</strong></div>`:''}</div>
+  </div>
+  <div class="applicant-row"><div style="flex:0 0 auto;">${photoTag}</div><div style="flex:1;"><div class="name-big">${fullName||'—'} &nbsp;&nbsp; <span style="font-size:11px;direction:rtl;color:#333;font-weight:normal;">الاسم الكامل</span></div><table style="border:none;"><tr><td style="border:none;color:#555;font-size:9px;width:36%;text-align:right;">:الجنسية الحالية Current Nationality:</td><td style="border:none;font-weight:bold;">${d.nationality||'—'}</td><td style="border:none;color:#555;font-size:9px;width:32%;text-align:right;">:رقم جواز السفر Passport No.:</td><td style="border:none;font-weight:bold;">${d.passport||'—'}</td></tr><tr><td style="border:none;color:#555;font-size:9px;text-align:right;">:المهنة Profession:</td><td style="border:none;font-weight:bold;">${d.worker||'—'}</td><td style="border:none;color:#555;font-size:9px;text-align:right;">:تاريخ الانتهاء Date of Expiry:</td><td style="border:none;font-weight:bold;">${d.expiry||'—'}</td></tr></table></div></div>
+  <table style="border-top:none;">
+    ${sec('PERSONAL INFORMATION','البيانات الشخصية')}
+    ${row2('Date of birth','تاريخ الميلاد',d.dob,'Place of birth','محل الميلاد',d.pob)}
+    ${row2('Past Nationality','الجنسية السابقة',d.nationality,'Current Nationality','الجنسية الحالية',d.nationality)}
+    ${row2('Sex','الجنس',d.gender,'Marital Status','الحالة الاجتماعية',d.marital)}
+    ${row2('Sect','المذهب',d.sect,'Religion','الديانة',d.religion)}
+    ${row2('Qualification','المؤهل العلمي',d.edu,'Profession','المهنة / '+profAR,d.worker)}
+    ${row1("Mother's Name",'اسم الأم',d.mother)}
+    ${row1('Home address and telephone No.','عنوان المنزل ورقم التلفون',(d.address||d.city||'—')+(d.phone?' — Tel: '+d.phone:''))}
+    ${sec('PASSPORT DETAILS','بيانات جواز السفر')}
+    ${row2('Issue Place','محل الإصدار',d.poi,'Issue Date','تاريخ الإصدار',d.issue_date)}
+    ${row2('Passport No.','رقم جواز السفر',d.passport,'Date of Expiry','تاريخ الانتهاء',d.expiry)}
+    ${sec('WORK EXPERIENCE & SKILLS','الخبرة العملية والمهارات')}
+    ${row1('Previous Work','العمل السابق',d.prev_work)}
+    ${row2('Languages','اللغات',d.langs,'Experience (years)','سنوات الخبرة',d.exp)}
+    ${row1('Skills','المهارات',d.skills)}
+    ${sec('EMPLOYER / SPONSOR','صاحب العمل / الكفيل')}
+    ${row2('Employer Name','اسم صاحب العمل',d.sponsor,'Tel','التلفون',d.emp_phone)}
+    ${row2('Destination City','المدينة',d.dest_city,'Country','الدولة',country)}
+  </table>
+  <div class="purpose-row"><span style="font-size:9px;color:#555;margin-right:6px;align-self:center;">Purpose of travel / الغاية من السفر:</span>
+  ${getPurposeBoxes(d.worker)}
+  </div>
+
+  <table style="border-top:none;"><tr><td colspan="4" class="dep-hdr">Dependents traveling in the same passport — إيضاحات تخص أفراد العائلة على نفس جواز السفر</td></tr><tr><td class="dep-col">Full Name / الاسم الكامل</td><td class="dep-col">Sex / الجنس</td><td class="dep-col">Date of Birth / تاريخ الميلاد</td><td class="dep-col">Relationship / نوع الصلة</td></tr><tr><td style="height:14px;"></td><td></td><td></td><td></td></tr><tr><td style="height:14px;"></td><td></td><td></td><td></td></tr></table>
+  <div class="sig-box"><div style="font-size:9.5px;direction:rtl;text-align:right;margin-bottom:6px;">أنا الموقع أدناه أقر بأن كل المعلومات التي دونتها صحيحة وسأكون ملتزما بقوانين المملكة أثناء فترة وجودي فيه.</div><div style="font-size:9.5px;margin-bottom:12px;">The undersigned hereby certify that all the information I have provided are correct. I will abide by the laws of the Kingdom during the period of my residence in it.</div><div style="display:flex;justify-content:space-between;margin-top:10px;"><div style="text-align:center;font-size:9px;"><div style="border-top:1px solid #333;width:140px;margin:0 auto 4px;"></div>Date: ${today} — التاريخ</div><div style="text-align:center;font-size:9px;"><div style="border-top:1px solid #333;width:140px;margin:0 auto 4px;"></div>Signature — التوقيع</div><div style="text-align:center;font-size:9px;"><div style="border-top:1px solid #333;width:140px;margin:0 auto 4px;"></div>Name: ${fullName} — الاسم</div></div></div>
+  <div class="official-row"><div class="official-cell"><div style="font-weight:bold;border-bottom:1px solid #ccc;margin-bottom:5px;padding-bottom:2px;">For official use only: للاستعمال الرسمي فقط</div><div>Authorization: <strong>${d.visa_no||'—'}</strong></div><div style="margin-top:4px;">Visit/Work for: <strong>${d.sponsor||'—'}</strong></div></div><div class="official-cell" style="text-align:center;"><div style="font-weight:bold;border-bottom:1px solid #ccc;margin-bottom:5px;padding-bottom:2px;">Head of Consular Section &nbsp;&nbsp; Checked by</div><div style="color:#888;margin-top:8px;font-size:9px;">القنصلي رئيس القسم &nbsp;&nbsp;&nbsp; مدقق البيانات</div></div></div>
+  <div class="barcode-row">${barcodeImgTag}<div style="font-size:8px;color:#888;margin-top:2px;">Application Reference: ${barcodeValue}</div></div>
+  <div class="footer-bar">GulfVisa Pro — Licensed Visa Agency Management Platform · gulfvisapro.com</div>
+  </div><script>window.onload=()=>{window.print();};<\/script></body></html>`;
+}
+
+// ----------------------------------------------------------------
+// PDF GENERATION
+// ----------------------------------------------------------------
+function downloadPDF() {
+  const d = collectFormData();
+  const win = window.open('', '_blank');
+  if (!win) { toast('Pop-up blocked — please allow pop-ups', 'error'); return; }
+  win.document.write(buildCvHTML(d));
+  win.document.close();
+  win.focus();
+  toast('Print dialog will open — choose "Save as PDF"', 'success');
+}
+
+function printCV() {
+  const d = collectFormData();
+  const win = window.open('', '_blank');
+  if (!win) { toast('Pop-up blocked — please allow pop-ups', 'error'); return; }
+  win.document.write(buildCvHTML(d));
+  win.document.close();
+}
+// ----------------------------------------------------------------
+// WHATSAPP
+// ----------------------------------------------------------------
+function sendWhatsApp() {
+  const num = document.getElementById('wa-number')?.value.trim();
+  if (!num) { toast('Enter client WhatsApp number', 'error'); return; }
+  const msg = encodeURIComponent('Your visa application CV has been generated and is ready. Please contact your agency for next steps. — GulfVisa Pro');
+  window.open('https://wa.me/' + num.replace(/[^0-9]/g,'') + '?text=' + msg, '_blank');
+  toast('Opening WhatsApp...', 'success');
+}
+
+// ----------------------------------------------------------------
+// SETTINGS
+// ----------------------------------------------------------------
+function populateSettings() {
+  if (!agencyProfile) return;
+  document.getElementById('set-agency-name').value = agencyProfile.agency_name || '';
+  document.getElementById('set-license').value = agencyProfile.license_number || '';
+  document.getElementById('set-phone').value = agencyProfile.phone || '';
+  document.getElementById('set-whatsapp').value = agencyProfile.whatsapp || '';
+  document.getElementById('set-currency').value = agencyProfile.currency || 'USD';
+}
+
+async function saveSettings() {
+  const updates = {
+    agency_name: document.getElementById('set-agency-name').value,
+    license_number: document.getElementById('set-license').value,
+    phone: document.getElementById('set-phone').value,
+    whatsapp: document.getElementById('set-whatsapp').value,
+    currency: document.getElementById('set-currency').value,
+  };
+  Object.assign(agencyProfile, updates);
+  if (sb) {
+    const { error: saveErr } = await sb.from('profiles').update(updates).eq('id', currentUser.id);
+    if (saveErr) { toast('Failed to save: ' + saveErr.message, 'error'); return; }
+  }
+  document.getElementById('sidebar-name').textContent = updates.agency_name;
+  toast('Settings saved successfully ✓', 'success');
+}
+
+// ----------------------------------------------------------------
+// BILLING / PAYMENTS
+// ----------------------------------------------------------------
+function selectPlan(plan) {
+  pendingPlan = plan;
+  openModal('modal-payment');
+}
+
+function togglePayCurrency(curr) {
+  // ETB only — no-op kept for compatibility
+}
+document.addEventListener('DOMContentLoaded', () => {
+  // init moved here to ensure DOM is ready
+});
+
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+
+async function processPayment() {
+  const waMsg = encodeURIComponent('Hi, I have made the 10,000 ETB bank transfer for GulfVisa Pro annual plan. Please find my receipt attached. Agency: ' + ((agencyProfile && agencyProfile.agency_name) || ''));
+  window.open('https://wa.me/251967777343?text=' + waMsg, '_blank');
+  closeModal('modal-payment');
+  toast('✅ Thank you! Send your receipt on WhatsApp +251967777343 or email gulfvisapro7@gmail.com — your plan will be activated within 2 hours.', 'success');
+}
+
+// ----------------------------------------------------------------
+// CURRENCY TOGGLES
+// ----------------------------------------------------------------
+function toggleLandingCurrency(cur) { /* removed — ETB only */ }
+function toggleBillingCurrency(cur) { /* removed — ETB only */ }
+
+// ── Passport Scanner (Tesseract.js - Free OCR) ──
+async function scanPassport(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById('passport-scan-status');
+  statusEl.style.color = '';
+  statusEl.textContent = '⏳ Reading passport... please wait';
+
+  try {
+    const imageUrl = URL.createObjectURL(file);
+
+    const result = await Tesseract.recognize(imageUrl, 'eng', {
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          statusEl.textContent = '⏳ Reading... ' + Math.round(m.progress * 100) + '%';
+        }
+      }
+    });
+
+    URL.revokeObjectURL(imageUrl);
+    const text = result.data.text;
+    console.log('Full OCR text:', text);
+
+    var filled = 0;
+
+    // ── Try MRZ first (two lines of machine-readable text at bottom) ──
+    var lines = text.split('\n').map(function(l) { return l.replace(/\s/g,'').toUpperCase(); });
+    var mrzLines = lines.filter(function(l) { return l.length >= 30 && /^[A-Z0-9<]+$/.test(l); });
+    console.log('MRZ lines found:', mrzLines);
+
+    if (mrzLines.length >= 2) {
+      var line1 = mrzLines[0];
+      var line2 = mrzLines[mrzLines.length - 1];
+
+      // Nationality from line1
+      var nat = line1.substring(2, 5).replace(/</g,'');
+      var natMap = {'ETH':'Ethiopian','SAU':'Saudi Arabian','ARE':'Emirati','QAT':'Qatari','KWT':'Kuwaiti','BHR':'Bahraini','OMN':'Omani','EGY':'Egyptian','GBR':'British','USA':'American'};
+      if (nat.length >= 2) { document.getElementById('cv-nationality').value = natMap[nat] || nat; filled++; }
+
+      // Name from line1
+      var namePart = line1.substring(5);
+      var parts = namePart.split('<<');
+      if (parts.length >= 2) {
+        var ln = parts[0].replace(/</g,' ').trim();
+        var fn = parts[1].replace(/</g,' ').trim();
+        if (ln) { document.getElementById('cv-lname').value = ln; filled++; }
+        if (fn) { document.getElementById('cv-fname').value = fn; filled++; }
+      }
+
+      // Passport number
+      var pno = line2.substring(0,9).replace(/</g,'');
+      if (pno) { document.getElementById('cv-passport').value = pno; filled++; }
+
+      // DOB
+      var dob = line2.substring(13,19);
+      if (/^[0-9]{6}$/.test(dob)) {
+        var yy = parseInt(dob.substring(0,2));
+        var yyyy = yy > 30 ? '19'+('0'+yy).slice(-2) : '20'+('0'+yy).slice(-2);
+        document.getElementById('cv-dob').value = yyyy+'-'+dob.substring(2,4)+'-'+dob.substring(4,6);
+        filled++;
+      }
+
+      // Gender
+      var sex = line2.substring(20,21);
+      if (sex === 'M') { document.getElementById('cv-gender').value = 'Male'; filled++; }
+      else if (sex === 'F') { document.getElementById('cv-gender').value = 'Female'; filled++; }
+
+      // Expiry
+      var exp = line2.substring(21,27);
+      if (/^[0-9]{6}$/.test(exp)) {
+        var eyy = parseInt(exp.substring(0,2));
+        var eyyy = '20'+('0'+eyy).slice(-2);
+        document.getElementById('cv-expiry').value = eyyy+'-'+exp.substring(2,4)+'-'+exp.substring(4,6);
+        filled++;
+      }
+    }
+
+    // ── Also scan regular text fields ──
+    var allText = text.toUpperCase();
+
+    // Try to find passport number pattern (e.g. EP12345 or A1234567)
+    if (!document.getElementById('cv-passport').value) {
+      var pnoMatch = text.match(/([A-Z]{1,2}[0-9]{6,8})/);
+      if (pnoMatch) { document.getElementById('cv-passport').value = pnoMatch[1]; filled++; }
+    }
+
+    // Try to find surname/given names
+    var surnameMatch = text.match(/(?:SURNAME|LAST NAME|FAMILY NAME)[:\s]+([A-Za-z\s]+)/i);
+    if (surnameMatch && !document.getElementById('cv-lname').value) {
+      document.getElementById('cv-lname').value = surnameMatch[1].trim(); filled++;
+    }
+    var givenMatch = text.match(/(?:GIVEN NAME|FIRST NAME|GIVEN NAMES)[:\s]+([A-Za-z\s]+)/i);
+    if (givenMatch && !document.getElementById('cv-fname').value) {
+      document.getElementById('cv-fname').value = givenMatch[1].trim(); filled++;
+    }
+
+    // Try DOB
+    if (!document.getElementById('cv-dob').value) {
+      var dobMatch = text.match(/(?:DATE OF BIRTH|BIRTH DATE|DOB)[:\s]+(\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})/i);
+      if (dobMatch) { document.getElementById('cv-dob').value = dobMatch[1]; filled++; }
+    }
+
+    // Place of birth
+    var pobMatch = text.match(/(?:PLACE OF BIRTH|BIRTHPLACE|BORN IN)[:\s]+([A-Za-z\s,]+)/i);
+    if (pobMatch) { document.getElementById('cv-pob').value = pobMatch[1].trim().split('\n')[0]; filled++; }
+
+    // Place of issue
+    var poiMatch = text.match(/(?:PLACE OF ISSUE|ISSUED AT|ISSUED IN)[:\s]+([A-Za-z\s]+)/i);
+    if (poiMatch) { document.getElementById('cv-poi').value = poiMatch[1].trim().split('\n')[0]; filled++; }
+
+    // Issue date
+    var issMatch = text.match(/(?:DATE OF ISSUE|ISSUE DATE|ISSUED)[:\s]+(\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})/i);
+    if (issMatch) { document.getElementById('cv-issue-date').value = issMatch[1]; filled++; }
+
+    // Expiry date from text
+    if (!document.getElementById('cv-expiry').value) {
+      var expMatch = text.match(/(?:DATE OF EXPIRY|EXPIRY DATE|EXPIRY|VALID UNTIL)[:\s]+(\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})/i);
+      if (expMatch) { document.getElementById('cv-expiry').value = expMatch[1]; filled++; }
+    }
+
+    // Nationality from text
+    if (!document.getElementById('cv-nationality').value) {
+      var natMatch = text.match(/(?:NATIONALITY)[:\s]+([A-Za-z\s]+)/i);
+      if (natMatch) { document.getElementById('cv-nationality').value = natMatch[1].trim().split('\n')[0]; filled++; }
+    }
+
+    updateCVPreview();
+
+    if (filled > 0) {
+      statusEl.textContent = '✅ Filled ' + filled + ' fields!';
+      statusEl.style.color = '#22c55e';
+      toast('✅ ' + filled + ' fields filled from passport!', 'success');
+    } else {
+      statusEl.textContent = '⚠️ Could not read. Try a clearer, well-lit photo.';
+      statusEl.style.color = '#f59e0b';
+      toast('Try a clearer photo — make sure the MRZ lines at the bottom are visible', 'warning');
+    }
+
+  } catch(err) {
+    console.error('Scan error:', err);
+    statusEl.textContent = '❌ Scan failed. Please fill manually.';
+    statusEl.style.color = '#ef4444';
+  }
+
+  input.value = '';
+}
+
+// ── Forgot Password ──// ── Forgot Password ──
+async function handleForgotPassword() {
+  const email = document.getElementById('signin-email').value.trim();
+  if (!email) { toast('Enter your email address first', 'error'); return; }
+  if (!sb) { toast('Not connected', 'error'); return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin
+  });
+  if (error) { toast(error.message, 'error'); return; }
+  toast('✅ Password reset link sent to ' + email, 'success');
+}
+
+// ── Export Applications to CSV ──
+function exportApplicationsCSV() {
+  if (!applications.length) { toast('No applications to export', 'error'); return; }
+  var headers = ['Name','Passport','Country','Visa Type','Status','Date','Phone','Employer','Nationality'];
+  var rows = applications.map(function(a) { return [
+    a.name||'', a.passport||'', a.country||'', a.workertype||'',
+    a.status||'', a.date||'', a.phone||'', a.employer||'', a.nationality||''
+  ]; });
+  var lines = [headers].concat(rows).map(function(r) {
+    return r.map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
+  });
+  var csv = lines.join('\n');
+  var blob = new Blob([csv], {type:'text/csv'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'applications_' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Exported ' + applications.length + ' applications', 'success');
+}
+
+// ── Print CV from application detail ──
+function printFromDetail() {
+  const id = document.getElementById('edit-app-id').value;
+  const a = applications.find(x => x.id === id);
+  if (!a) return;
+  const nameParts = (a.name||'').split(' ');
+  const d = {
+    fname: nameParts[0]||'', lname: nameParts.slice(1).join(' ')||'',
+    passport: a.passport||'', nationality: a.nationality||'',
+    dob: a.date||'', gender: a.gender||'', pob: a.city||'',
+    country: a.country||'', worker: a.workertype||'',
+    phone: a.phone||'', city: a.city||'',
+    religion: a.religion||'', marital: a.marital||'',
+    edu: a.education||'', langs: a.languages||'',
+    skills: a.skills||'', prev_work: a.workexp||'',
+    sponsor: a.employer||'', emp_phone: a.employerphone||'',
+    dest_city: a.city||'', visa_no: a.type||'',
+    mother: a.mother||'', poi: a.placeofissue||'',
+    issue_date: '', expiry: '', sect: '', exp: '',
+    photo: a.photo||null, address: ''
+  };
+  const win = window.open('', '_blank');
+  if (!win) { toast('Pop-up blocked — allow pop-ups', 'error'); return; }
+  win.document.write(buildCvHTML(d));
+  win.document.close();
+}
+
+// ── Update revenue tracker on billing tab ──
+function updateRevenueTracker() {
+  const el1 = document.getElementById('rev-clients');
+  const el2 = document.getElementById('rev-cvs');
+  if (el1) el1.textContent = clients.length;
+  if (el2) el2.textContent = applications.length;
+}
+
+// ── Application Detail / Edit ──
+function openAppDetail(id) {
+  const a = applications.find(x => x.id === id);
+  if (!a) return;
+  
+  // Split name into first/last
+  const nameParts = (a.name || '').split(' ');
+  document.getElementById('edit-fname').value = nameParts[0] || '';
+  document.getElementById('edit-lname').value = nameParts.slice(1).join(' ') || '';
+  document.getElementById('edit-passport').value = a.passport || '';
+  document.getElementById('edit-nationality').value = a.nationality || '';
+  document.getElementById('edit-dob').value = a.date || '';
+  document.getElementById('edit-gender').value = a.gender || 'Male';
+  document.getElementById('edit-country').value = a.country || 'SA';
+  document.getElementById('edit-workertype').value = a.workertype || '';
+  document.getElementById('edit-phone').value = a.phone || '';
+  document.getElementById('edit-employer').value = a.employer || '';
+  document.getElementById('edit-employerphone').value = a.employerphone || '';
+  document.getElementById('edit-city').value = a.city || '';
+  document.getElementById('edit-religion').value = a.religion || '';
+  document.getElementById('edit-marital').value = a.marital || 'Single';
+  document.getElementById('edit-education').value = a.education || '';
+  document.getElementById('edit-languages').value = a.languages || '';
+  document.getElementById('edit-skills').value = a.skills || '';
+  document.getElementById('edit-workexp').value = a.workexp || '';
+  document.getElementById('edit-status').value = a.status || 'Pending';
+  document.getElementById('edit-app-id').value = id;
+  
+  openModal('modal-app-detail');
+}
+
+async function saveAppEdit() {
+  const id = document.getElementById('edit-app-id').value;
+  const fname = document.getElementById('edit-fname').value.trim();
+  const lname = document.getElementById('edit-lname').value.trim();
+  
+  const updates = {
+    name: (fname + ' ' + lname).trim(),
+    passport: document.getElementById('edit-passport').value.trim(),
+    nationality: document.getElementById('edit-nationality').value.trim(),
+    date: document.getElementById('edit-dob').value,
+    gender: document.getElementById('edit-gender').value,
+    country: document.getElementById('edit-country').value,
+    workertype: document.getElementById('edit-workertype').value,
+    phone: document.getElementById('edit-phone').value.trim(),
+    employer: document.getElementById('edit-employer').value.trim(),
+    employerphone: document.getElementById('edit-employerphone').value.trim(),
+    city: document.getElementById('edit-city').value.trim(),
+    religion: document.getElementById('edit-religion').value.trim(),
+    marital: document.getElementById('edit-marital').value,
+    education: document.getElementById('edit-education').value.trim(),
+    languages: document.getElementById('edit-languages').value.trim(),
+    skills: document.getElementById('edit-skills').value.trim(),
+    workexp: document.getElementById('edit-workexp').value.trim(),
+    status: document.getElementById('edit-status').value
+  };
+
+  // Update local array
+  const idx = applications.findIndex(x => x.id === id);
+  if (idx !== -1) applications[idx] = { ...applications[idx], ...updates };
+
+  // Update Supabase
+  if (sb) {
+    const { error } = await sb.from('applications').update(updates).eq('id', id);
+    if (error) { toast('Save failed: ' + error.message, 'error'); return; }
+  }
+
+  closeModal('modal-app-detail');
+  renderApplications();
+  renderOverview();
+  toast('✅ Application updated successfully!', 'success');
+}
+
+// ── Mobile menu ──
+function toggleMobileMenu() {
+  const sidebar = document.getElementById('dash-sidebar');
+  const overlay = document.getElementById('mob-sidebar-overlay');
+  if (!sidebar || !overlay) return;
+  sidebar.classList.toggle('mob-open');
+  overlay.classList.toggle('mob-open');
+}
+function closeMobileMenu() {
+  const sidebar = document.getElementById('dash-sidebar');
+  const overlay = document.getElementById('mob-sidebar-overlay');
+  if (sidebar) sidebar.classList.remove('mob-open');
+  if (overlay) overlay.classList.remove('mob-open');
+}
+
+// init
+window.addEventListener('load', function() {
+  try { updateCVPreview(); } catch(e) { console.warn('CVPreview init:', e); }
+  // Close mobile menu when nav item clicked
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.addEventListener('click', () => {
+      if (window.innerWidth <= 680) closeMobileMenu();
+    });
+  });
+});
+</script>
+
+<!-- Application Detail / Edit Modal -->
+<div id="modal-app-detail" class="modal-overlay hidden">
+  <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto;">
+    <button class="modal-close" onclick="closeModal('modal-app-detail')">✕</button>
+    <div class="modal-title">Application Detail</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div class="form-group"><label>First Name</label><input type="text" id="edit-fname"/></div>
+      <div class="form-group"><label>Last Name</label><input type="text" id="edit-lname"/></div>
+      <div class="form-group"><label>Passport No</label><input type="text" id="edit-passport"/></div>
+      <div class="form-group"><label>Nationality</label><input type="text" id="edit-nationality"/></div>
+      <div class="form-group"><label>Date of Birth</label><input type="date" id="edit-dob"/></div>
+      <div class="form-group"><label>Gender</label>
+        <select id="edit-gender">
+          <option>Male</option><option>Female</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Country</label>
+        <select id="edit-country">
+          <option value="SA">Saudi Arabia</option>
+          <option value="AE">UAE</option>
+          <option value="QA">Qatar</option>
+          <option value="KW">Kuwait</option>
+          <option value="BH">Bahrain</option>
+          <option value="OM">Oman</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Visa Type</label>
+        <select id="edit-workertype">
+          <option>Domestic Worker (Maid/Cleaner)</option>
+          <option>Driver</option>
+          <option>Nurse / Healthcare</option>
+          <option>Construction Worker</option>
+          <option>Engineer</option>
+          <option>Teacher</option>
+          <option>Cook / Chef</option>
+          <option>Security Guard</option>
+          <option>Electrician</option>
+          <option>Plumber</option>
+          <option>Welder</option>
+          <option>Cleaner / Janitor</option>
+          <option>Waiter / Hospitality</option>
+          <option>Farmer / Agricultural Worker</option>
+          <option>Visit / Tourism</option>
+          <option>Family Visit</option>
+          <option>Business Visit</option>
+          <option>Umrah</option>
+          <option>Hajj</option>
+          <option>Transit</option>
+          <option>Residence</option>
+          <option>Student</option>
+          <option>Free Visa</option>
+          <option>Other Professional</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Phone</label><input type="text" id="edit-phone"/></div>
+      <div class="form-group"><label>Employer / Sponsor</label><input type="text" id="edit-employer"/></div>
+      <div class="form-group"><label>Employer Phone</label><input type="text" id="edit-employerphone"/></div>
+      <div class="form-group"><label>Destination City</label><input type="text" id="edit-city"/></div>
+      <div class="form-group"><label>Religion</label><input type="text" id="edit-religion"/></div>
+      <div class="form-group"><label>Marital Status</label>
+        <select id="edit-marital">
+          <option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Education</label><input type="text" id="edit-education"/></div>
+      <div class="form-group"><label>Languages</label><input type="text" id="edit-languages"/></div>
+      <div class="form-group"><label>Skills</label><input type="text" id="edit-skills"/></div>
+      <div class="form-group"><label>Previous Work</label><input type="text" id="edit-workexp"/></div>
+      <div class="form-group"><label>Status</label>
+        <select id="edit-status">
+          <option>Pending</option><option>Processing</option><option>Approved</option><option>Rejected</option>
+        </select>
+      </div>
+    </div>
+    <input type="hidden" id="edit-app-id"/>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-full" onclick="saveAppEdit()">💾 Save Changes</button>
+      <button class="btn btn-ghost" onclick="printFromDetail()" style="min-width:110px;">🖨 Print CV</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-app-detail')" style="min-width:100px;">Cancel</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
